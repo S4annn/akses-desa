@@ -1,6 +1,7 @@
 import { ArrowLeft, Calendar, User } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
+import { Seo } from '../../components/common/Seo';
 import { posts } from '../../data/dummyData';
 import { formatDate } from '../../utils/formatDate';
 
@@ -20,6 +21,7 @@ export function NewsDetailPage() {
 
   return (
     <div>
+      <Seo title={post.title} description={post.excerpt} image={post.image_url} type="article" />
       <PageHeader eyebrow={post.type} title={post.title} description={post.excerpt} />
       <div className="container-page py-10">
         <Link to="/berita" className="btn-ghost"><ArrowLeft className="h-4 w-4" /> Semua berita</Link>

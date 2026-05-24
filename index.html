@@ -3,14 +3,53 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="AksesDesa — Portal digital desa yang lebih mudah, transparan, dan responsif." />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0F766E" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="AksesDesa" />
+
+    <!-- Default SEO meta (akan di-override oleh komponen Seo per halaman) -->
+    <title>AksesDesa — Portal Digital Desa Modern</title>
+    <meta name="description" content="Portal digital desa yang lebih mudah, transparan, dan responsif. Layanan administrasi, pengaduan warga, UMKM, dan AI assistant dalam satu akses." />
+    <meta name="keywords" content="portal desa, layanan desa online, pengaduan warga, UMKM desa, transparansi desa, surat domisili, surat keterangan usaha, AI desa, digitalisasi desa" />
+    <meta name="author" content="AksesDesa" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="AksesDesa" />
+    <meta property="og:title" content="AksesDesa — Portal Digital Desa Modern" />
+    <meta property="og:description" content="Layanan desa lebih mudah, cepat, dan transparan. Semua dalam satu akses." />
+    <meta property="og:image" content="/og-image.jpg" />
+    <meta property="og:locale" content="id_ID" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AksesDesa — Portal Digital Desa Modern" />
+    <meta name="twitter:description" content="Layanan desa lebih mudah, cepat, dan transparan." />
+    <meta name="twitter:image" content="/og-image.jpg" />
+
+    <!-- JSON-LD: Organization schema untuk Google -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "GovernmentOrganization",
+        "name": "AksesDesa",
+        "alternateName": "Portal Digital Desa",
+        "description": "Portal digital desa untuk layanan administrasi, pengaduan, UMKM, dan transparansi.",
+        "areaServed": "Indonesia",
+        "knowsLanguage": "id"
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <title>AksesDesa — Portal Digital Desa</title>
+
     <style>
       /* Initial boot splash — terlihat instant sebelum React load */
       #app-boot {
@@ -30,10 +69,7 @@
         opacity: 0;
         pointer-events: none;
       }
-      .boot-content {
-        text-align: center;
-        animation: boot-in 0.5s ease-out;
-      }
+      .boot-content { text-align: center; animation: boot-in 0.5s ease-out; }
       @keyframes boot-in {
         from { opacity: 0; transform: translateY(8px); }
         to { opacity: 1; transform: translateY(0); }
@@ -54,8 +90,7 @@
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-6px); }
       }
-      .boot-logo::before,
-      .boot-logo::after {
+      .boot-logo::before, .boot-logo::after {
         content: '';
         position: absolute;
         inset: 0;
@@ -76,29 +111,12 @@
         fill: #fff;
         filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
       }
-      .boot-title {
-        margin-top: 22px;
-        font-size: 26px;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-      }
+      .boot-title { margin-top: 22px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
       .boot-title span { color: #5eead4; }
-      .boot-sub {
-        margin-top: 4px;
-        font-size: 13px;
-        opacity: 0.75;
-      }
-      .boot-dots {
-        margin-top: 28px;
-        display: flex;
-        gap: 6px;
-        justify-content: center;
-      }
+      .boot-sub { margin-top: 4px; font-size: 13px; opacity: 0.75; }
+      .boot-dots { margin-top: 28px; display: flex; gap: 6px; justify-content: center; }
       .boot-dots span {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #5eead4;
+        width: 8px; height: 8px; border-radius: 50%; background: #5eead4;
         animation: boot-dot 1.2s ease-in-out infinite;
       }
       .boot-dots span:nth-child(2) { animation-delay: 0.2s; }
@@ -107,29 +125,21 @@
         0%, 100% { transform: scale(1); opacity: 0.4; }
         50% { transform: scale(1.4); opacity: 1; }
       }
-      .boot-message {
-        margin-top: 16px;
-        font-size: 13px;
-        font-weight: 500;
-        opacity: 0.85;
-      }
+      .boot-message { margin-top: 16px; font-size: 13px; font-weight: 500; opacity: 0.85; }
       .boot-tagline {
-        position: absolute;
-        bottom: 32px;
-        left: 0;
-        right: 0;
-        text-align: center;
-        font-size: 11px;
-        font-style: italic;
-        opacity: 0.6;
+        position: absolute; bottom: 32px; left: 0; right: 0;
+        text-align: center; font-size: 11px; font-style: italic; opacity: 0.6;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-logo, .boot-logo::before, .boot-logo::after, .boot-dots span { animation: none; }
       }
     </style>
   </head>
   <body>
-    <div id="app-boot">
+    <div id="app-boot" role="status" aria-label="Memuat aplikasi">
       <div class="boot-content">
         <div class="boot-logo">
-          <svg viewBox="0 0 24 24"><path d="M12 3 L21 12 L18.5 12 L18.5 21 L14 21 L14 15 L10 15 L10 21 L5.5 21 L5.5 12 L3 12 Z" /></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 L21 12 L18.5 12 L18.5 21 L14 21 L14 15 L10 15 L10 21 L5.5 21 L5.5 12 L3 12 Z" /></svg>
         </div>
         <h1 class="boot-title">Akses<span>Desa</span></h1>
         <p class="boot-sub">Portal Digital Desa Modern</p>
@@ -139,8 +149,12 @@
       <p class="boot-tagline">"Semua layanan desa, kini dalam satu akses."</p>
     </div>
     <div id="root"></div>
+    <noscript>
+      <div style="padding: 2rem; text-align: center; font-family: system-ui;">
+        AksesDesa membutuhkan JavaScript untuk berjalan. Silakan aktifkan JavaScript di browser Anda.
+      </div>
+    </noscript>
     <script>
-      // Hide boot splash setelah React mount
       window.addEventListener('load', function () {
         setTimeout(function () {
           var boot = document.getElementById('app-boot');

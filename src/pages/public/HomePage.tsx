@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SectionHeader } from '../../components/common/SectionHeader';
+import { Seo } from '../../components/common/Seo';
+import { SmartImage } from '../../components/common/SmartImage';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { agendas, msmes, posts, sampleComplaints, villageStats } from '../../data/dummyData';
 import { formatDate, timeAgo } from '../../utils/formatDate';
@@ -77,6 +79,10 @@ const aiPrompts = [
 export function HomePage() {
   return (
     <div>
+      <Seo
+        title="Beranda"
+        description="Layanan desa lebih mudah, cepat, dan transparan. Ajukan surat, lapor pengaduan, akses bansos, temukan UMKM lokal, dan tanya AI Desa."
+      />
       <Hero />
       <QuickAccess />
       <Stats />
@@ -464,7 +470,7 @@ function MSMEPreview() {
           <div key={m.id} className="card group overflow-hidden transition hover:-translate-y-1 hover:shadow-soft">
             <div className="relative h-36 overflow-hidden bg-slate-100">
               {m.image_url && (
-                <img src={m.image_url} alt={m.business_name} className="h-full w-full object-cover transition group-hover:scale-105" />
+                <SmartImage src={m.image_url} alt={m.business_name} className="h-full w-full object-cover transition group-hover:scale-105" />
               )}
               {m.is_verified && (
                 <span className="chip absolute left-2 top-2 border border-white/40 bg-white/80 text-emerald-700 backdrop-blur">
@@ -564,7 +570,7 @@ function NewsPreview() {
           >
             <div className={`relative ${i === 0 ? 'h-72' : 'h-44'} overflow-hidden bg-slate-100`}>
               {p.image_url && (
-                <img src={p.image_url} alt={p.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                <SmartImage src={p.image_url} alt={p.title} className="h-full w-full object-cover transition group-hover:scale-105" />
               )}
               <span className="chip absolute left-3 top-3 border border-white/40 bg-white/80 capitalize text-brand-700 backdrop-blur">
                 {p.type}

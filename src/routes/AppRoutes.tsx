@@ -1,11 +1,12 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { LoadingScreen } from '../components/common/LoadingScreen';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { HomePage } from '../pages/public/HomePage';
 import { ProtectedRoute } from './ProtectedRoute';
 
-// Public pages (lazy except Home for fast first paint)
+// Public pages
 const ProfilePage = lazy(() => import('../pages/public/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const ServicesPage = lazy(() => import('../pages/public/ServicesPage').then((m) => ({ default: m.ServicesPage })));
 const ServiceRequestPage = lazy(() => import('../pages/public/ServiceRequestPage').then((m) => ({ default: m.ServiceRequestPage })));
@@ -21,8 +22,9 @@ const GalleryPage = lazy(() => import('../pages/public/GalleryPage').then((m) =>
 const ContactPage = lazy(() => import('../pages/public/ContactPage').then((m) => ({ default: m.ContactPage })));
 const ChatbotPage = lazy(() => import('../pages/public/ChatbotPage').then((m) => ({ default: m.ChatbotPage })));
 const LoginPage = lazy(() => import('../pages/public/LoginPage').then((m) => ({ default: m.LoginPage })));
+const NotFoundPage = lazy(() => import('../pages/public/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
-// Admin pages (all lazy)
+// Admin pages
 const AdminLayout = lazy(() => import('../layouts/AdminLayout').then((m) => ({ default: m.AdminLayout })));
 const DashboardPage = lazy(() => import('../pages/admin/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const ServiceRequestsAdminPage = lazy(() => import('../pages/admin/ServiceRequestsPage').then((m) => ({ default: m.ServiceRequestsAdminPage })));
@@ -42,42 +44,45 @@ function PageFallback() {
 
 export function AppRoutes() {
   return (
-    <Suspense fallback={<PageFallback />}>
-      <Routes>
-        <Route element={<PublicLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/profil" element={<ProfilePage />} />
-          <Route path="/layanan" element={<ServicesPage />} />
-          <Route path="/ajukan" element={<ServiceRequestPage />} />
-          <Route path="/cek-status" element={<TrackingPage />} />
-          <Route path="/bansos" element={<SocialAidPage />} />
-          <Route path="/pengaduan" element={<ComplaintPage />} />
-          <Route path="/umkm" element={<MSMEPage />} />
-          <Route path="/berita" element={<NewsPage />} />
-          <Route path="/berita/:slug" element={<NewsDetailPage />} />
-          <Route path="/agenda" element={<AgendaPage />} />
-          <Route path="/transparansi" element={<TransparencyPage />} />
-          <Route path="/galeri" element={<GalleryPage />} />
-          <Route path="/kontak" element={<ContactPage />} />
-          <Route path="/chatbot" element={<ChatbotPage />} />
-        </Route>
-        <Route path="/login" element={<LoginPage />} />
-        <Route element={<ProtectedRoute />}>
-          <Route element={<AdminLayout />}>
-            <Route path="/admin" element={<DashboardPage />} />
-            <Route path="/admin/pengajuan" element={<ServiceRequestsAdminPage />} />
-            <Route path="/admin/pengaduan" element={<ComplaintsAdminPage />} />
-            <Route path="/admin/bansos" element={<SocialAidAdminPage />} />
-            <Route path="/admin/umkm" element={<MSMEAdminPage />} />
-            <Route path="/admin/berita" element={<PostsAdminPage />} />
-            <Route path="/admin/agenda" element={<AgendaAdminPage />} />
-            <Route path="/admin/transparansi" element={<TransparencyAdminPage />} />
-            <Route path="/admin/galeri" element={<GalleryAdminPage />} />
-            <Route path="/admin/knowledge" element={<KnowledgeBasePage />} />
-            <Route path="/admin/pengaturan" element={<VillageSettingsPage />} />
+    <ErrorBoundary>
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/profil" element={<ProfilePage />} />
+            <Route path="/layanan" element={<ServicesPage />} />
+            <Route path="/ajukan" element={<ServiceRequestPage />} />
+            <Route path="/cek-status" element={<TrackingPage />} />
+            <Route path="/bansos" element={<SocialAidPage />} />
+            <Route path="/pengaduan" element={<ComplaintPage />} />
+            <Route path="/umkm" element={<MSMEPage />} />
+            <Route path="/berita" element={<NewsPage />} />
+            <Route path="/berita/:slug" element={<NewsDetailPage />} />
+            <Route path="/agenda" element={<AgendaPage />} />
+            <Route path="/transparansi" element={<TransparencyPage />} />
+            <Route path="/galeri" element={<GalleryPage />} />
+            <Route path="/kontak" element={<ContactPage />} />
+            <Route path="/chatbot" element={<ChatbotPage />} />
           </Route>
-        </Route>
-      </Routes>
-    </Suspense>
+          <Route path="/login" element={<LoginPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<DashboardPage />} />
+              <Route path="/admin/pengajuan" element={<ServiceRequestsAdminPage />} />
+              <Route path="/admin/pengaduan" element={<ComplaintsAdminPage />} />
+              <Route path="/admin/bansos" element={<SocialAidAdminPage />} />
+              <Route path="/admin/umkm" element={<MSMEAdminPage />} />
+              <Route path="/admin/berita" element={<PostsAdminPage />} />
+              <Route path="/admin/agenda" element={<AgendaAdminPage />} />
+              <Route path="/admin/transparansi" element={<TransparencyAdminPage />} />
+              <Route path="/admin/galeri" element={<GalleryAdminPage />} />
+              <Route path="/admin/knowledge" element={<KnowledgeBasePage />} />
+              <Route path="/admin/pengaturan" element={<VillageSettingsPage />} />
+            </Route>
+          </Route>
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 }

@@ -1,5 +1,6 @@
 import { Building2, Compass, Goal, MapPin, Sparkles, Users, Wheat } from 'lucide-react';
 import { PageHeader } from '../../components/common/PageHeader';
+import { Seo } from '../../components/common/Seo';
 import { officials, village, villageStats } from '../../data/dummyData';
 
 export function ProfilePage() {
@@ -13,6 +14,7 @@ export function ProfilePage() {
 
   return (
     <div>
+      <Seo title="Profil Desa" description={`Profil ${village.name}, ${village.district}, ${village.regency}. Sejarah, visi misi, perangkat desa, dan potensi.`} />
       <PageHeader
         eyebrow="Profil Desa"
         title={village.name}

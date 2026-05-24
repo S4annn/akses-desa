@@ -3,6 +3,7 @@ import { Bot, Loader2, Send, Sparkles, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
+import { Seo } from '../../components/common/Seo';
 import { knowledgeBase } from '../../data/dummyData';
 import { askVillageAssistant } from '../../services/geminiService';
 
@@ -85,6 +86,7 @@ export function ChatbotPage() {
 
   return (
     <div>
+      <Seo title="AI Desa" description="Tanya AI Desa untuk informasi syarat layanan, jadwal kegiatan, bantuan sosial, dan panduan pengajuan dengan cepat." />
       <PageHeader
         eyebrow="AI Desa"
         title="Tanya AI Layanan Desa"
@@ -92,7 +94,7 @@ export function ChatbotPage() {
       />
       <div className="container-page py-10">
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="card flex h-[70vh] min-h-[520px] flex-col p-0 lg:col-span-2">
+          <div className="card flex h-[70vh] min-h-[520px] flex-col p-0 lg:col-span-2 mb-20 lg:mb-0">
             <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3">
               <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-700 to-emerald-500 text-white">
                 <Bot className="h-4 w-4" />

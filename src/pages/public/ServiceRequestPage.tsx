@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckCircle2, Copy, FileText, Home, Upload } from 'lucide-react';
+import { CheckCircle2, Copy, FileText, Home, Save, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import { PageHeader } from '../../components/common/PageHeader';
 import { serviceTypes } from '../../data/dummyData';
+import { useFormAutosave } from '../../hooks/useFormAutosave';
 import { useToast } from '../../hooks/useToast';
 import { generateTrackingCode } from '../../utils/generateTrackingCode';
 
@@ -35,20 +36,24 @@ export function ServiceRequestPage() {
   const { show } = useToast();
   const [trackingCode, setTrackingCode] = useState<string | null>(null);
 
+  const form = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: { service_type_id: presetService, gender: 'Laki-laki' },
+  });
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: { service_type_id: presetService, gender: 'Laki-laki' },
-  });
+  } = form;
+
+  const autosave = useFormAutosave('service-request', form);
 
   async function onSubmit() {
     await new Promise((r) => setTimeout(r, 600));
     const code = generateTrackingCode('ADS');
     setTrackingCode(code);
+    autosave.clear();
     show('Pengajuan berhasil dikirim', 'success');
     reset();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -91,6 +96,15 @@ export function ServiceRequestPage() {
     <div>
       <PageHeader eyebrow="Ajukan Surat" title="Form Pengajuan Surat" description="Isi formulir di bawah, layanan akan diproses oleh perangkat desa." />
       <div className="container-page py-10">
+        {autosave.hasSaved() && (
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+            <Save className="h-4 w-4" />
+            <span className="flex-1">Draft Anda otomatis tersimpan di browser ini. Lanjutkan kapan saja.</span>
+            <button type="button" onClick={() => { autosave.clear(); reset(); }} className="text-xs font-semibold underline hover:text-amber-900">
+              Hapus draft
+            </button>
+          </div>
+        )}
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-5 lg:col-span-2">
             <div className="card p-6">

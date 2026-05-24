@@ -2,6 +2,8 @@ import { CheckCircle2, MapPin, Phone, Plus, Search, Store } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { PageHeader } from '../../components/common/PageHeader';
+import { Seo } from '../../components/common/Seo';
+import { SmartImage } from '../../components/common/SmartImage';
 import { msmes } from '../../data/dummyData';
 import { useToast } from '../../hooks/useToast';
 import type { MSME } from '../../types/app';
@@ -25,6 +27,7 @@ export function MSMEPage() {
 
   return (
     <div>
+      <Seo title="UMKM Desa" description="Katalog UMKM lokal desa: makanan, kerajinan, pertanian, jasa, dan lainnya. Dukung produk warga." />
       <PageHeader
         eyebrow="UMKM Desa"
         title="Katalog UMKM Lokal"
@@ -53,7 +56,7 @@ export function MSMEPage() {
             <button key={m.id} onClick={() => setActive(m)} className="card group overflow-hidden text-left transition hover:-translate-y-1 hover:shadow-soft">
               <div className="relative h-44 overflow-hidden bg-slate-100">
                 {m.image_url ? (
-                  <img src={m.image_url} alt={m.business_name} className="h-full w-full object-cover transition group-hover:scale-105" />
+                  <SmartImage src={m.image_url} alt={m.business_name} className="h-full w-full object-cover transition group-hover:scale-105" />
                 ) : (
                   <Store className="m-auto h-10 w-10 text-slate-300" />
                 )}
@@ -78,7 +81,7 @@ export function MSMEPage() {
         {active && (
           <div className="space-y-4">
             {active.image_url && (
-              <img src={active.image_url} alt={active.business_name} className="h-56 w-full rounded-xl object-cover" />
+              <SmartImage src={active.image_url} alt={active.business_name} className="h-56 w-full rounded-xl object-cover" />
             )}
             <p className="text-sm text-slate-600">{active.description}</p>
             <div className="grid gap-3 sm:grid-cols-2 text-sm">

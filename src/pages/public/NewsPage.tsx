@@ -2,6 +2,7 @@ import { Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
+import { Seo } from '../../components/common/Seo';
 import { posts } from '../../data/dummyData';
 import { formatDate } from '../../utils/formatDate';
 
@@ -24,6 +25,7 @@ export function NewsPage() {
 
   return (
     <div>
+      <Seo title="Berita & Pengumuman" description="Berita, pengumuman, dan kegiatan terbaru dari desa." />
       <PageHeader eyebrow="Berita & Pengumuman" title="Kabar dari desa" description="Informasi resmi, agenda, dan kegiatan terbaru." />
       <div className="container-page py-10">
         <div className="card flex flex-col gap-3 p-4 sm:flex-row sm:items-center">

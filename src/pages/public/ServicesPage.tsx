@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Modal } from '../../components/common/Modal';
 import { PageHeader } from '../../components/common/PageHeader';
+import { Seo } from '../../components/common/Seo';
 import { serviceTypes } from '../../data/dummyData';
 import type { ServiceType } from '../../types/app';
 
@@ -25,6 +26,7 @@ export function ServicesPage() {
 
   return (
     <div>
+      <Seo title="Layanan Desa" description="Daftar layanan administrasi desa: surat keterangan domisili, usaha, SKCK, dan lainnya. Ajukan online tanpa antri." />
       <PageHeader
         eyebrow="Layanan Desa"
         title="Daftar Layanan Administrasi"
