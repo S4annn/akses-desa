@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import { LoadingScreen } from '../components/common/LoadingScreen';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { HomePage } from '../pages/public/HomePage';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -36,14 +37,7 @@ const KnowledgeBasePage = lazy(() => import('../pages/admin/KnowledgeBasePage').
 const VillageSettingsPage = lazy(() => import('../pages/admin/VillageSettingsPage').then((m) => ({ default: m.VillageSettingsPage })));
 
 function PageFallback() {
-  return (
-    <div className="grid min-h-[60vh] place-items-center">
-      <div className="flex items-center gap-3 text-slate-500">
-        <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-brand-600" />
-        <span className="text-sm font-medium">Memuat halaman...</span>
-      </div>
-    </div>
-  );
+  return <LoadingScreen fullScreen={false} message="Sedang memuat halaman..." />;
 }
 
 export function AppRoutes() {

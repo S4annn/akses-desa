@@ -2,6 +2,7 @@ import { Eye, EyeOff, ShieldCheck, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '../../components/common/Logo';
+import { images } from '../../config/images';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../hooks/useToast';
 
@@ -29,6 +30,12 @@ export function LoginPage() {
   return (
     <div className="relative grid min-h-screen lg:grid-cols-2">
       <div className="relative hidden overflow-hidden bg-gradient-to-br from-brand-800 via-brand-700 to-emerald-700 p-10 text-white lg:flex lg:flex-col lg:justify-between">
+        {/* Background image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-30"
+          style={{ backgroundImage: `url("${images.loginBackground}")` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-900/80 via-brand-800/70 to-emerald-800/80" />
         <div className="absolute inset-0 bg-topo-pattern opacity-30" />
         <div className="blob h-80 w-80 -top-20 -left-10 bg-brand-400/40" />
         <div className="blob h-72 w-72 -bottom-20 -right-10 bg-emerald-400/40" />
