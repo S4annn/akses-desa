@@ -95,14 +95,20 @@ function Hero() {
     <section className="relative overflow-hidden">
       {/* Background image with village photo */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url("${images.heroBackground}")` }}
+        className="absolute inset-0 bg-cover bg-center scale-105"
+        style={{
+          backgroundImage: `url("${images.heroBackground}")`,
+          filter: 'saturate(1.05)',
+        }}
       />
-      {/* Soft white overlay agar text tetap readable */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cream/95 via-white/90 to-brand-50/85" />
-      <div className="absolute inset-0 bg-topo-pattern opacity-50" />
-      <div className="blob h-80 w-80 -top-20 -left-20 bg-brand-200/60" />
-      <div className="blob h-96 w-96 -bottom-32 -right-20 bg-emerald-200/50" />
+      {/* Vignette gradient — terang di kanan (foto desa kelihatan), 
+          lembut di kiri (text readable) */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/45 to-white/15" />
+      {/* Tint hijau halus untuk match brand */}
+      <div className="absolute inset-0 bg-gradient-to-br from-brand-50/30 via-transparent to-emerald-50/30" />
+      <div className="absolute inset-0 bg-topo-pattern opacity-20" />
+      <div className="blob h-80 w-80 -top-20 -left-20 bg-brand-200/40" />
+      <div className="blob h-96 w-96 -bottom-32 -right-20 bg-emerald-200/40" />
       <div className="container-page relative grid items-center gap-12 py-14 lg:grid-cols-12 lg:py-20">
         <div className="lg:col-span-6">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
