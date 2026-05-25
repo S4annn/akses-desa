@@ -54,13 +54,13 @@ export function NotFoundPage() {
               <p className="text-xs text-slate-500">Daftar surat administrasi</p>
             </div>
           </Link>
-          <Link to="/chatbot" className="card group flex items-center gap-3 p-4 text-left transition hover:-translate-y-1 hover:shadow-soft">
+          <Link to="/cek-status" className="card group flex items-center gap-3 p-4 text-left transition hover:-translate-y-1 hover:shadow-soft">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
               <Compass className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-slate-900">Tanya AI</p>
-              <p className="text-xs text-slate-500">Asisten layanan desa</p>
+              <p className="text-sm font-semibold text-slate-900">Cek Status</p>
+              <p className="text-xs text-slate-500">Lacak pengajuan & pengaduan</p>
             </div>
           </Link>
           <Link to="/berita" className="card group flex items-center gap-3 p-4 text-left transition hover:-translate-y-1 hover:shadow-soft">

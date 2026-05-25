@@ -18,6 +18,6 @@
   "shortcuts": [
     { "name": "Ajukan Surat", "short_name": "Ajukan", "url": "/ajukan", "description": "Buat pengajuan surat administrasi" },
     { "name": "Pengaduan", "short_name": "Lapor", "url": "/pengaduan", "description": "Laporkan masalah lingkungan" },
-    { "name": "AI Desa", "short_name": "AI", "url": "/chatbot", "description": "Tanya AI Layanan Desa" }
+    { "name": "Cek Status", "short_name": "Status", "url": "/cek-status", "description": "Lacak pengajuan dan pengaduan" }
   ]
 }

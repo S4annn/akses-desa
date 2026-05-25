@@ -1,5 +1,4 @@
 import {
-  BookOpen,
   Calendar,
   ChevronDown,
   FileSpreadsheet,
@@ -35,7 +34,6 @@ const menu = [
   { to: '/admin/agenda', label: 'Agenda', icon: Calendar },
   { to: '/admin/transparansi', label: 'Transparansi', icon: FileSpreadsheet },
   { to: '/admin/galeri', label: 'Galeri', icon: ImageIcon },
-  { to: '/admin/knowledge', label: 'Knowledge Base AI', icon: BookOpen },
   { to: '/admin/pengaturan', label: 'Pengaturan Desa', icon: Settings },
 ];
 

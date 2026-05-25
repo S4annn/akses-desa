@@ -188,15 +188,34 @@ export async function deleteComplaint(id: string): Promise<void> {
 
 export async function findComplaintByTrackingCode(code: string): Promise<Complaint | null> {
   const normalized = code.trim().toUpperCase();
+  console.info(`[Complaints] Mencari tracking code: "${normalized}"`);
+
   if (!supabase) {
-    return memoryComplaints.find((c) => c.tracking_code === normalized) ?? null;
+    const found = memoryComplaints.find((c) => c.tracking_code === normalized);
+    console.info(
+      `[Complaints] Mode demo, total memory: ${memoryComplaints.length}, ditemukan: ${!!found}`
+    );
+    if (!found) {
+      console.info('[Complaints] Available codes:', memoryComplaints.map((c) => c.tracking_code));
+    }
+    return found ?? null;
   }
+
   const { data, error } = await supabase
     .from('complaints')
     .select('*')
     .eq('tracking_code', normalized)
     .maybeSingle();
-  if (error || !data) return null;
+
+  if (error) {
+    console.error('[Complaints] Query error:', error);
+  }
+  if (!data) {
+    console.warn(`[Complaints] Tidak ditemukan di Supabase. Cek tabel "complaints" di Supabase.`);
+    return null;
+  }
+
+  console.info('[Complaints] Found:', data.id, data.tracking_code, data.status);
   return {
     id: String(data.id),
     tracking_code: String(data.tracking_code),

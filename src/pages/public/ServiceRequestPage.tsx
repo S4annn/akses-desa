@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckCircle2, Copy, FileText, Home, Save, Upload } from 'lucide-react';
+import { CheckCircle2, Copy, FileText, Home, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
+import { ImageUploader } from '../../components/common/ImageUploader';
 import { PageHeader } from '../../components/common/PageHeader';
 import { useFormAutosave } from '../../hooks/useFormAutosave';
 import { useToast } from '../../hooks/useToast';
@@ -58,6 +59,11 @@ export function ServiceRequestPage() {
   } = form;
 
   const autosave = useFormAutosave('service-request', form);
+
+  // Document uploads
+  const [ktpUrl, setKtpUrl] = useState<string>('');
+  const [kkUrl, setKkUrl] = useState<string>('');
+  const [extraUrl, setExtraUrl] = useState<string>('');
 
   async function onSubmit(data: FormData) {
     try {
@@ -187,15 +193,20 @@ export function ServiceRequestPage() {
 
             <div className="card p-6">
               <h3 className="text-base font-semibold text-slate-900">Dokumen Pendukung</h3>
-              <p className="mt-1 text-sm text-slate-500">Format jpg, png, atau pdf, maks 5MB per file.</p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                {['Upload KTP', 'Upload KK', 'Dokumen pendukung (opsional)'].map((label) => (
-                  <label key={label} className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 p-4 text-center text-sm text-slate-500 hover:border-brand-400 hover:bg-brand-50/50">
-                    <Upload className="h-5 w-5 text-brand-600" />
-                    <span className="font-medium">{label}</span>
-                    <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" />
-                  </label>
-                ))}
+              <p className="mt-1 text-sm text-slate-500">Format JPG/PNG/WEBP, maks 5MB per file. Upload foto KTP & KK Anda.</p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="label">Upload KTP</label>
+                  <ImageUploader value={ktpUrl} onChange={setKtpUrl} folder="docs/ktp" aspectRatio="4/3" label="Klik unggah KTP" hint="JPG/PNG, maks 5MB" />
+                </div>
+                <div>
+                  <label className="label">Upload KK</label>
+                  <ImageUploader value={kkUrl} onChange={setKkUrl} folder="docs/kk" aspectRatio="4/3" label="Klik unggah KK" hint="JPG/PNG, maks 5MB" />
+                </div>
+                <div>
+                  <label className="label">Dokumen tambahan (opsional)</label>
+                  <ImageUploader value={extraUrl} onChange={setExtraUrl} folder="docs/extra" aspectRatio="4/3" label="Klik unggah dokumen" hint="JPG/PNG, maks 5MB" />
+                </div>
               </div>
             </div>
           </div>

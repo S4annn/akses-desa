@@ -20,7 +20,6 @@ const AgendaPage = lazy(() => import('../pages/public/AgendaPage').then((m) => (
 const TransparencyPage = lazy(() => import('../pages/public/TransparencyPage').then((m) => ({ default: m.TransparencyPage })));
 const GalleryPage = lazy(() => import('../pages/public/GalleryPage').then((m) => ({ default: m.GalleryPage })));
 const ContactPage = lazy(() => import('../pages/public/ContactPage').then((m) => ({ default: m.ContactPage })));
-const ChatbotPage = lazy(() => import('../pages/public/ChatbotPage').then((m) => ({ default: m.ChatbotPage })));
 const LoginPage = lazy(() => import('../pages/public/LoginPage').then((m) => ({ default: m.LoginPage })));
 const NotFoundPage = lazy(() => import('../pages/public/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
@@ -35,7 +34,6 @@ const PostsAdminPage = lazy(() => import('../pages/admin/PostsAdminPage').then((
 const AgendaAdminPage = lazy(() => import('../pages/admin/AgendaAdminPage').then((m) => ({ default: m.AgendaAdminPage })));
 const TransparencyAdminPage = lazy(() => import('../pages/admin/TransparencyAdminPage').then((m) => ({ default: m.TransparencyAdminPage })));
 const GalleryAdminPage = lazy(() => import('../pages/admin/GalleryAdminPage').then((m) => ({ default: m.GalleryAdminPage })));
-const KnowledgeBasePage = lazy(() => import('../pages/admin/KnowledgeBasePage').then((m) => ({ default: m.KnowledgeBasePage })));
 const VillageSettingsPage = lazy(() => import('../pages/admin/VillageSettingsPage').then((m) => ({ default: m.VillageSettingsPage })));
 
 function PageFallback() {
@@ -62,7 +60,6 @@ export function AppRoutes() {
             <Route path="/transparansi" element={<TransparencyPage />} />
             <Route path="/galeri" element={<GalleryPage />} />
             <Route path="/kontak" element={<ContactPage />} />
-            <Route path="/chatbot" element={<ChatbotPage />} />
           </Route>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<ProtectedRoute />}>
@@ -76,7 +73,6 @@ export function AppRoutes() {
               <Route path="/admin/agenda" element={<AgendaAdminPage />} />
               <Route path="/admin/transparansi" element={<TransparencyAdminPage />} />
               <Route path="/admin/galeri" element={<GalleryAdminPage />} />
-              <Route path="/admin/knowledge" element={<KnowledgeBasePage />} />
               <Route path="/admin/pengaturan" element={<VillageSettingsPage />} />
             </Route>
           </Route>

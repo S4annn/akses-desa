@@ -13,5 +13,4 @@
   <url><loc>/transparansi</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
   <url><loc>/galeri</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
   <url><loc>/kontak</loc><priority>0.6</priority><changefreq>yearly</changefreq></url>
-  <url><loc>/chatbot</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
 </urlset>

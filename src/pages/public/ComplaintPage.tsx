@@ -2,6 +2,7 @@ import { CheckCircle2, Copy, FileSearch, Image as ImageIcon, MapPin, MessageSqua
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
+import { ImageUploader } from '../../components/common/ImageUploader';
 import { PageHeader } from '../../components/common/PageHeader';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { useLiveData } from '../../hooks/useLiveData';
@@ -39,6 +40,7 @@ export function ComplaintPage() {
   const isAnon = watch('is_anonymous');
   const { show } = useToast();
   const [result, setResult] = useState<{ code: string; complaint: Complaint } | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string>('');
   const { data: publicList = [] } = useLiveData<Complaint[]>(
     () => listPublicComplaints(8),
     ['complaint_created', 'complaint_updated', 'complaint_deleted'],
@@ -55,10 +57,12 @@ export function ComplaintPage() {
         location: data.location,
         description: data.description,
         citizen_urgency: data.urgency,
+        photo_url: photoUrl || undefined,
       });
       setResult({ code: r.tracking_code, complaint: r.complaint });
       show('Pengaduan terkirim, terima kasih!', 'success');
       reset({ is_anonymous: false, category: 'Jalan rusak', urgency: 'sedang' });
+      setPhotoUrl('');
     } catch (err) {
       show((err as Error).message || 'Gagal mengirim pengaduan, coba lagi.', 'error');
     }
@@ -122,11 +126,14 @@ export function ComplaintPage() {
             </div>
             <div className="sm:col-span-2">
               <label className="label">Foto pendukung (opsional)</label>
-              <label className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-slate-200 p-4 text-sm text-slate-500 hover:border-brand-400 hover:bg-brand-50/50">
-                <ImageIcon className="h-5 w-5 text-brand-600" />
-                <span>Klik untuk unggah foto (jpg/png, maks 5MB)</span>
-                <input type="file" className="hidden" accept="image/*" />
-              </label>
+              <ImageUploader
+                value={photoUrl}
+                onChange={setPhotoUrl}
+                folder="complaints"
+                aspectRatio="16/9"
+                label="Klik untuk unggah foto"
+                hint="JPG/PNG/WEBP, maks 5MB"
+              />
             </div>
           </div>
 

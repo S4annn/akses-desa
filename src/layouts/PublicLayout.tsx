@@ -1,4 +1,4 @@
-import { Bot, FileText, MessageSquareWarning } from 'lucide-react';
+import { FileSearch, FileText, MessageSquareWarning } from 'lucide-react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Footer } from './Footer';
 import { Navbar } from './Navbar';
@@ -22,8 +22,8 @@ export function PublicLayout() {
           <Link to="/pengaduan" className="rounded-full px-3 py-2 text-xs font-semibold text-rose-600">
             <MessageSquareWarning className="mr-1 inline h-4 w-4" /> Lapor
           </Link>
-          <Link to="/chatbot" className="rounded-full bg-brand-700 px-3 py-2 text-xs font-semibold text-white">
-            <Bot className="mr-1 inline h-4 w-4" /> AI Desa
+          <Link to="/cek-status" className="rounded-full bg-brand-700 px-3 py-2 text-xs font-semibold text-white">
+            <FileSearch className="mr-1 inline h-4 w-4" /> Cek Status
           </Link>
         </div>
       </div>

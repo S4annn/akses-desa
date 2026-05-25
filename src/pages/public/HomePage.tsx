@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import {
   ArrowRight,
-  Bot,
   Building2,
   Calendar,
   CheckCircle2,
@@ -75,19 +74,12 @@ const flow = [
   { step: '05', title: 'Ambil dokumen', desc: 'Dokumen siap diambil/diunduh.' },
 ];
 
-const aiPrompts = [
-  'Syarat membuat surat domisili apa?',
-  'Bagaimana cara mengajukan SKU?',
-  'Kapan jadwal posyandu?',
-  'Bagaimana melapor jalan rusak?',
-];
-
 export function HomePage() {
   return (
     <div>
       <Seo
         title="Beranda"
-        description="Layanan desa lebih mudah, cepat, dan transparan. Ajukan surat, lapor pengaduan, akses bansos, temukan UMKM lokal, dan tanya AI Desa."
+        description="Layanan desa lebih mudah, cepat, dan transparan. Ajukan surat, lapor pengaduan, akses bansos, dan temukan UMKM lokal."
       />
       <Hero />
       <QuickAccess />
@@ -96,7 +88,6 @@ export function HomePage() {
       <HowItWorks />
       <ComplaintsPreview />
       <MSMEPreview />
-      <AISection />
       <NewsPreview />
     </div>
   );
@@ -141,8 +132,8 @@ function Hero() {
               <Link to="/pengaduan" className="btn-outline">
                 <MessageSquareWarning className="h-4 w-4" /> Laporkan Masalah
               </Link>
-              <Link to="/chatbot" className="btn-secondary">
-                <Bot className="h-4 w-4" /> Tanya AI Desa
+              <Link to="/cek-status" className="btn-secondary">
+                <FileSearch className="h-4 w-4" /> Cek Status
               </Link>
             </div>
             <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -206,14 +197,14 @@ function Hero() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-brand-700">
-                      <Bot className="h-4 w-4" />
+                      <CheckCircle2 className="h-4 w-4" />
                     </span>
-                    <p className="text-xs font-semibold text-slate-800">AI Desa Siap Membantu</p>
+                    <p className="text-xs font-semibold text-slate-800">Sistem Berjalan Normal</p>
                   </div>
-                  <span className="text-[10px] text-slate-500">Online</span>
+                  <span className="text-[10px] text-emerald-600">● Realtime</span>
                 </div>
                 <p className="mt-2 text-[11px] text-slate-600">
-                  "Cari syarat surat, jadwal kegiatan, atau cara melapor pengaduan."
+                  Pengajuan, pengaduan, dan layanan desa terpantau langsung oleh perangkat desa.
                 </p>
               </div>
             </motion.div>
@@ -529,69 +520,6 @@ function MSMEPreview() {
           ))}
         </div>
       )}
-    </section>
-  );
-}
-
-function AISection() {
-  return (
-    <section className="container-page py-14">
-      <div className="relative overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-slate-900 via-brand-900 to-emerald-900 p-8 sm:p-12 text-white">
-        <div className="absolute inset-0 bg-topo-pattern opacity-20" />
-        <div className="blob h-72 w-72 -top-10 -right-10 bg-brand-400/30" />
-        <div className="blob h-72 w-72 -bottom-10 -left-10 bg-emerald-400/30" />
-        <div className="relative grid gap-8 lg:grid-cols-12 lg:items-center">
-          <div className="lg:col-span-7">
-            <span className="chip border border-white/20 bg-white/10 text-white">
-              <Sparkles className="h-3.5 w-3.5" /> AI Desa
-            </span>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-              Tanya AI Desa, dapat jawaban lebih cepat.
-            </h2>
-            <p className="mt-3 max-w-xl text-white/85">
-              Cari syarat layanan, jadwal kegiatan, informasi bantuan sosial, dan panduan pengajuan tanpa harus bingung mencari halaman.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-2">
-              {aiPrompts.map((p) => (
-                <Link
-                  key={p}
-                  to={`/chatbot?q=${encodeURIComponent(p)}`}
-                  className="chip border border-white/20 bg-white/10 text-white/90 hover:bg-white/20"
-                >
-                  {p}
-                </Link>
-              ))}
-            </div>
-            <Link to="/chatbot" className="mt-6 inline-flex btn bg-white text-brand-800 hover:bg-cream">
-              <Bot className="h-4 w-4" /> Mulai bertanya
-            </Link>
-          </div>
-          <div className="lg:col-span-5">
-            <div className="glass relative rounded-2xl border-white/20 bg-white/10 p-4 text-white/90">
-              <div className="flex items-center gap-2">
-                <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/15">
-                  <Bot className="h-4 w-4" />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold">AI Desa</p>
-                  <p className="text-[11px] opacity-80">Asisten Layanan Desa</p>
-                </div>
-              </div>
-              <div className="mt-4 space-y-3 text-sm">
-                <div className="rounded-2xl bg-white/15 px-3 py-2">
-                  Syarat membuat surat domisili apa?
-                </div>
-                <div className="rounded-2xl bg-white/95 px-3 py-2 text-slate-800">
-                  Cukup siapkan fotokopi KTP, KK, dan surat pengantar RT/RW. Diproses 1-2 hari kerja, gratis.
-                </div>
-              </div>
-              <p className="mt-4 text-[11px] text-white/70">
-                Disclaimer: jawaban AI bersifat informasi awal. Konfirmasi keputusan resmi ke kantor desa.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
     </section>
   );
 }

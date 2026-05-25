@@ -1,4 +1,4 @@
-import { Bot, Menu, ShieldCheck, X } from 'lucide-react';
+import { FileSearch, Menu, ShieldCheck, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { LanguageToggle } from '../components/common/LanguageToggle';
@@ -58,9 +58,9 @@ export function Navbar() {
         </nav>
         <div className="flex items-center gap-2">
           <LanguageToggle className="hidden sm:inline-flex" />
-          <Link to="/chatbot" className="hidden sm:inline-flex btn-ghost text-brand-700">
-            <Bot className="h-4 w-4" />
-            AI Desa
+          <Link to="/cek-status" className="hidden sm:inline-flex btn-ghost text-brand-700">
+            <FileSearch className="h-4 w-4" />
+            Cek Status
           </Link>
           <Link to="/login" className="hidden sm:inline-flex btn-primary">
             <ShieldCheck className="h-4 w-4" /> Admin
@@ -100,8 +100,8 @@ export function Navbar() {
               </NavLink>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <Link to="/chatbot" className="btn-secondary justify-center">
-                <Bot className="h-4 w-4" /> AI Desa
+              <Link to="/cek-status" className="btn-secondary justify-center">
+                <FileSearch className="h-4 w-4" /> Cek Status
               </Link>
               <Link to="/login" className="btn-primary justify-center">
                 <ShieldCheck className="h-4 w-4" /> Admin
