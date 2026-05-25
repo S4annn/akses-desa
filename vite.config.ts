@@ -10,17 +10,21 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       manifest: {
+        id: '/',
         name: 'AksesDesa — Portal Digital Desa',
         short_name: 'AksesDesa',
-        description: 'Portal digital desa yang lebih mudah, transparan, dan responsif.',
-        start_url: '/',
+        description: 'Portal digital desa yang lebih mudah, transparan, dan responsif. Layanan administrasi, pengaduan warga, UMKM, dan informasi desa dalam satu portal.',
+        start_url: '/?source=pwa',
         scope: '/',
         display: 'standalone',
+        display_override: ['standalone', 'minimal-ui'],
         orientation: 'portrait',
         background_color: '#FFF7ED',
         theme_color: '#0F766E',
         lang: 'id',
+        dir: 'ltr',
         categories: ['government', 'productivity', 'social'],
+        prefer_related_applications: false,
         icons: [
           {
             src: '/icon-192.png',
@@ -39,6 +43,22 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
+          },
+        ],
+        screenshots: [
+          {
+            src: '/screenshot-wide.png',
+            sizes: '1280x720',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'AksesDesa Dashboard',
+          },
+          {
+            src: '/screenshot-mobile.png',
+            sizes: '720x1280',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'AksesDesa Mobile',
           },
         ],
         shortcuts: [

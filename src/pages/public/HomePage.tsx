@@ -32,7 +32,8 @@ import { villageStats } from '../../data/dummyData';
 import { listPublicComplaints } from '../../services/complaintsService';
 import { listPublicMSMEs } from '../../services/msmeService';
 import { listPublicPosts } from '../../services/postsService';
-import type { Complaint, MSME, Post } from '../../types/app';
+import { getActiveVillage } from '../../services/villageService';
+import type { Complaint, MSME, Post, Village } from '../../types/app';
 import { formatDate, timeAgo } from '../../utils/formatDate';
 import { images } from '../../config/images';
 
@@ -94,6 +95,16 @@ export function HomePage() {
 }
 
 function Hero() {
+  const { data: village } = useLiveData<Village | null>(
+    () => getActiveVillage(),
+    ['village_updated'],
+    null
+  );
+  const villageName = village?.name ?? 'Desa Sukamaju';
+  const fullLocation = village
+    ? `${village.district}, ${village.regency}, ${village.province}`
+    : 'Tanjung Sari, Sleman, Daerah Istimewa Yogyakarta';
+
   return (
     <section className="relative overflow-hidden">
       {/* Background image with village photo */}
@@ -104,155 +115,95 @@ function Hero() {
           filter: 'saturate(1.05)',
         }}
       />
-      {/* Vignette gradient — terang di kanan (foto desa kelihatan), 
-          lembut di kiri (text readable) */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/45 to-white/15" />
-      {/* Tint hijau halus untuk match brand */}
-      <div className="absolute inset-0 bg-gradient-to-br from-brand-50/30 via-transparent to-emerald-50/30" />
-      <div className="absolute inset-0 bg-topo-pattern opacity-20" />
-      <div className="blob h-80 w-80 -top-20 -left-20 bg-brand-200/40" />
-      <div className="blob h-96 w-96 -bottom-32 -right-20 bg-emerald-200/40" />
-      <div className="container-page relative grid items-center gap-12 py-14 lg:grid-cols-12 lg:py-20">
-        <div className="lg:col-span-6">
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <span className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/80 px-3 py-1 text-xs font-semibold text-brand-700 shadow-sm">
-              <Sparkles className="h-3.5 w-3.5" />
-              Portal Digital Desa Modern
+      {/* Dark overlay agar text putih readable */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-900/55 via-slate-900/40 to-slate-900/70" />
+      {/* Tint hijau halus di bawah */}
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-brand-900/60 to-transparent" />
+      <div className="absolute inset-0 bg-topo-pattern opacity-15" />
+
+      <div className="container-page relative flex min-h-[600px] flex-col items-center justify-center py-20 text-center text-white sm:min-h-[680px] sm:py-28">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="max-w-4xl"
+        >
+          {/* Badge salam */}
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold text-white backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
+            Selamat Datang
+          </span>
+
+          {/* Salam besar */}
+          <h1 className="mt-6 text-4xl font-extrabold tracking-tight drop-shadow-md sm:text-6xl lg:text-7xl">
+            Selamat Datang di
+            <span className="mt-2 block bg-gradient-to-r from-brand-300 via-emerald-200 to-cream bg-clip-text text-transparent">
+              {villageName}
             </span>
-            <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-[3.4rem] lg:leading-[1.05]">
-              Layanan Desa Lebih <span className="gradient-text">Mudah, Cepat,</span> dan Transparan.
-            </h1>
-            <p className="mt-5 max-w-xl text-base text-slate-600 sm:text-lg">
-              AksesDesa membantu warga mengurus administrasi, melihat pengumuman, mengajukan pengaduan, mengecek bantuan sosial, dan menemukan UMKM lokal dalam satu portal digital.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link to="/ajukan" className="btn-primary">
-                <FileText className="h-4 w-4" /> Ajukan Layanan
-              </Link>
-              <Link to="/pengaduan" className="btn-outline">
-                <MessageSquareWarning className="h-4 w-4" /> Laporkan Masalah
-              </Link>
-              <Link to="/cek-status" className="btn-secondary">
-                <FileSearch className="h-4 w-4" /> Cek Status
-              </Link>
-            </div>
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[
-                { icon: ClipboardList, label: 'Layanan Online' },
-                { icon: MessageSquareWarning, label: 'Pengaduan Terpantau' },
-                { icon: Newspaper, label: 'Info Terpusat' },
-                { icon: Phone, label: 'Ramah Mobile' },
-              ].map((t) => (
-                <div key={t.label} className="flex items-center gap-2 rounded-xl border border-slate-200/60 bg-white/70 px-3 py-2 backdrop-blur">
-                  <t.icon className="h-4 w-4 text-brand-600" />
-                  <span className="text-xs font-medium text-slate-700">{t.label}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
+          </h1>
 
-        {/* Hero visual mockup */}
-        <div className="lg:col-span-6">
-          <div className="relative mx-auto max-w-xl">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              className="relative rounded-3xl border border-white/60 bg-white/70 p-5 shadow-soft backdrop-blur-xl"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-700 to-emerald-500 text-white">
-                    <Compass className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">Desa Sukamaju</p>
-                    <p className="text-[11px] text-slate-500">Command Center · Realtime</p>
-                  </div>
-                </div>
-                <span className="chip border border-emerald-200 bg-emerald-50 text-emerald-700">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Layanan Aktif
-                </span>
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                {[
-                  { icon: FileText, label: 'Pengajuan Surat', value: '128', tone: 'from-brand-600 to-emerald-500' },
-                  { icon: Store, label: 'UMKM Terdaftar', value: '34', tone: 'from-amber-500 to-rose-400' },
-                  { icon: MessageSquareWarning, label: 'Pengaduan Diproses', value: '12', tone: 'from-sky-500 to-violet-500' },
-                  { icon: Calendar, label: 'Agenda Bulan Ini', value: '8', tone: 'from-violet-500 to-fuchsia-500' },
-                ].map((c) => (
-                  <div key={c.label} className="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
-                    <span className={`grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br ${c.tone} text-white`}>
-                      <c.icon className="h-4 w-4" />
-                    </span>
-                    <p className="mt-2 text-xs text-slate-500">{c.label}</p>
-                    <p className="text-xl font-bold text-slate-900">{c.value}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-3 rounded-2xl border border-brand-100 bg-gradient-to-r from-brand-50 to-emerald-50 p-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-white text-brand-700">
-                      <CheckCircle2 className="h-4 w-4" />
-                    </span>
-                    <p className="text-xs font-semibold text-slate-800">Sistem Berjalan Normal</p>
-                  </div>
-                  <span className="text-[10px] text-emerald-600">● Realtime</span>
-                </div>
-                <p className="mt-2 text-[11px] text-slate-600">
-                  Pengajuan, pengaduan, dan layanan desa terpantau langsung oleh perangkat desa.
-                </p>
-              </div>
-            </motion.div>
-
-            {/* Floating cards — diposisikan di luar dashboard agar tidak menutupi konten */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="absolute -left-6 -bottom-4 hidden w-56 rounded-2xl border border-slate-100 bg-white p-3 shadow-soft animate-float sm:block"
-            >
-              <div className="flex items-center gap-2">
-                <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
-                  <CheckCircle2 className="h-4 w-4" />
-                </span>
-                <div>
-                  <p className="text-xs font-semibold text-slate-900">Surat Domisili</p>
-                  <p className="text-[10px] text-slate-500">ADS-2026-8F3K2 · Diproses</p>
-                </div>
-              </div>
-              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-brand-600 to-emerald-500" />
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.45 }}
-              className="absolute -right-6 -top-6 hidden w-60 rounded-2xl border border-slate-100 bg-white p-3 shadow-soft animate-float sm:block"
-              style={{ animationDelay: '1s' }}
-            >
-              <div className="flex items-center gap-2">
-                <span className="grid h-8 w-8 place-items-center rounded-lg bg-rose-50 text-rose-600">
-                  <Lightbulb className="h-4 w-4" />
-                </span>
-                <div>
-                  <p className="text-xs font-semibold text-slate-900">Pengaduan Lampu Jalan</p>
-                  <p className="text-[10px] text-slate-500">Selesai · Dusun Melati</p>
-                </div>
-              </div>
-              <div className="mt-2 flex items-center gap-2 text-[10px]">
-                <MapPin className="h-3 w-3 text-rose-500" />
-                <span className="text-slate-500">Diselesaikan dalam 2 hari</span>
-              </div>
-            </motion.div>
+          {/* Lokasi */}
+          <div className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-white/85 sm:text-base">
+            <MapPin className="h-4 w-4" />
+            <span>{fullLocation}</span>
           </div>
-        </div>
+
+          {/* Pesan sambutan */}
+          <p className="mx-auto mt-6 max-w-2xl text-base text-white/90 sm:text-lg">
+            Portal resmi {villageName} — tempat warga, perangkat desa, dan
+            masyarakat luas terhubung. Jelajahi profil desa, layanan publik,
+            UMKM lokal, hingga kabar dan agenda terbaru.
+          </p>
+
+          {/* CTA */}
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
+            <Link to="/profil" className="btn bg-white text-brand-800 hover:bg-cream shadow-soft">
+              <Compass className="h-4 w-4" /> Tentang Desa Kami
+            </Link>
+            <Link
+              to="/layanan"
+              className="btn border border-white/40 bg-white/10 text-white backdrop-blur hover:bg-white/20"
+            >
+              <FileText className="h-4 w-4" /> Layanan Desa
+            </Link>
+          </div>
+
+          {/* Quick links bar */}
+          <div className="mt-12 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+            {[
+              { to: '/berita', icon: Newspaper, label: 'Berita Terbaru' },
+              { to: '/agenda', icon: Calendar, label: 'Agenda Desa' },
+              { to: '/umkm', icon: Store, label: 'UMKM Lokal' },
+              { to: '/galeri', icon: Sparkles, label: 'Galeri Desa' },
+            ].map((q) => (
+              <Link
+                key={q.to}
+                to={q.to}
+                className="group flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-white backdrop-blur transition hover:border-white/40 hover:bg-white/20"
+              >
+                <q.icon className="h-4 w-4 text-brand-200 transition group-hover:text-white" />
+                <span>{q.label}</span>
+                <ArrowRight className="ml-auto h-3.5 w-3.5 opacity-0 transition group-hover:opacity-100" />
+              </Link>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Scroll indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 0.5 }}
+          className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 sm:block"
+        >
+          <div className="flex h-8 w-5 justify-center rounded-full border-2 border-white/40 p-1">
+            <motion.div
+              animate={{ y: [0, 6, 0] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+              className="h-1.5 w-1 rounded-full bg-white/70"
+            />
+          </div>
+        </motion.div>
       </div>
     </section>
   );
