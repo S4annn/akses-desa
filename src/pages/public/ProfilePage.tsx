@@ -1,5 +1,6 @@
 import { Building2, Compass, Goal, MapPin, Sparkles, Users, Wheat } from 'lucide-react';
 import { PageHeader } from '../../components/common/PageHeader';
+import { RealMap } from '../../components/common/RealMap';
 import { Seo } from '../../components/common/Seo';
 import { Skeleton } from '../../components/common/Skeleton';
 import { SmartImage } from '../../components/common/SmartImage';
@@ -66,12 +67,12 @@ export function ProfilePage() {
       />
 
       <div className="container-page space-y-12 py-12">
-        <section className="grid gap-6 lg:grid-cols-3">
+        <section id="sejarah" className="scroll-mt-24 grid gap-6 lg:grid-cols-3">
           <div className="card p-6 lg:col-span-2">
             <h2 className="text-xl font-bold text-slate-900">Sejarah Desa</h2>
             <p className="mt-3 text-slate-600">{village.history}</p>
           </div>
-          <div className="card overflow-hidden">
+          <div id="visi-misi" className="card scroll-mt-24 overflow-hidden">
             <div className="bg-gradient-to-br from-brand-700 to-emerald-500 p-6 text-white">
               <Compass className="h-6 w-6" />
               <p className="mt-2 text-xs font-semibold uppercase tracking-wider opacity-80">Visi</p>
@@ -91,7 +92,7 @@ export function ProfilePage() {
           </div>
         </section>
 
-        <section>
+        <section id="struktur" className="scroll-mt-24">
           <h2 className="text-xl font-bold text-slate-900">Struktur Pemerintahan Desa</h2>
           <p className="mt-1 text-sm text-slate-500">Perangkat desa yang melayani warga.</p>
 
@@ -158,7 +159,7 @@ export function ProfilePage() {
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
-          <div className="card p-6">
+          <div id="demografi" className="card scroll-mt-24 p-6">
             <h2 className="text-xl font-bold text-slate-900">Data Demografi</h2>
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
               {[
@@ -177,7 +178,7 @@ export function ProfilePage() {
               ))}
             </div>
           </div>
-          <div className="card p-6">
+          <div id="potensi" className="card scroll-mt-24 p-6">
             <h2 className="text-xl font-bold text-slate-900">Potensi Desa</h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {potencies.map((p) => (
@@ -188,6 +189,40 @@ export function ProfilePage() {
                   <span className="text-sm font-medium text-slate-700">{p.label}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="peta" className="scroll-mt-24">
+          <h2 className="text-xl font-bold text-slate-900">Peta Wilayah Desa</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Lokasi {village.name} di {village.district}, {village.regency}, {village.province}.
+          </p>
+          <div className="card mt-4 overflow-hidden p-0">
+            <div className="h-80 sm:h-96">
+              {village.latitude != null && village.longitude != null ? (
+                <RealMap
+                  center={[village.latitude, village.longitude]}
+                  zoom={15}
+                  markers={[
+                    {
+                      id: 'village-center',
+                      lat: village.latitude,
+                      lng: village.longitude,
+                      color: '#0F766E',
+                      popupTitle: village.name,
+                      popupBody: village.address,
+                    },
+                  ]}
+                />
+              ) : (
+                <div className="grid h-full place-items-center text-sm text-slate-500">
+                  Koordinat desa belum diatur. Admin dapat mengatur di Pengaturan Desa.
+                </div>
+              )}
+            </div>
+            <div className="border-t border-slate-100 bg-slate-50 px-4 py-3 text-xs text-slate-500">
+              📍 {village.address}
             </div>
           </div>
         </section>

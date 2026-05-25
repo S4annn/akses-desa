@@ -51,7 +51,7 @@ export function Logo({ to = '/', white = false, showText = true, className = '' 
       </span>
       {showText && (
         <span className="flex flex-col leading-tight">
-          <span className={`text-[15px] font-extrabold tracking-tight ${white ? 'text-white' : 'text-slate-900'}`}>
+          <span className={`whitespace-nowrap text-[15px] font-extrabold tracking-tight ${white ? 'text-white' : 'text-slate-900'}`}>
             {primary}
             {secondary && <span className="text-brand-600">{secondary}</span>}
           </span>
