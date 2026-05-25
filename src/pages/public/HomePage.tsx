@@ -212,12 +212,12 @@ function Hero() {
               </div>
             </motion.div>
 
-            {/* Floating cards */}
+            {/* Floating cards — diposisikan di luar dashboard agar tidak menutupi konten */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="absolute -left-4 top-10 hidden w-56 rounded-2xl border border-slate-100 bg-white p-3 shadow-soft animate-float sm:block"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="absolute -left-6 -bottom-4 hidden w-56 rounded-2xl border border-slate-100 bg-white p-3 shadow-soft animate-float sm:block"
             >
               <div className="flex items-center gap-2">
                 <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
@@ -234,10 +234,10 @@ function Hero() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-              className="absolute -right-3 bottom-8 hidden w-60 rounded-2xl border border-slate-100 bg-white p-3 shadow-soft animate-float sm:block"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.45 }}
+              className="absolute -right-6 -top-6 hidden w-60 rounded-2xl border border-slate-100 bg-white p-3 shadow-soft animate-float sm:block"
               style={{ animationDelay: '1s' }}
             >
               <div className="flex items-center gap-2">
