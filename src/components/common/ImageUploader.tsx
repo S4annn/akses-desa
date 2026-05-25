@@ -37,11 +37,20 @@ export function ImageUploader({
   async function handleFile(file: File) {
     setUploading(true);
     try {
+      console.info('[ImageUploader] Memproses file:', file.name, file.type, `${(file.size / 1024).toFixed(1)} KB`);
       const url = await uploadImage(file, folder);
       onChange(url);
-      show('Gambar berhasil diunggah', 'success');
+      const isDataUrl = url.startsWith('data:');
+      show(
+        isDataUrl
+          ? 'Gambar diunggah (mode lokal). Setup Supabase Storage untuk upload permanen.'
+          : 'Gambar berhasil diunggah',
+        'success'
+      );
     } catch (err) {
-      show((err as Error).message || 'Gagal upload gambar', 'error');
+      const msg = (err as Error).message || 'Gagal upload gambar';
+      console.error('[ImageUploader] Error:', err);
+      show(msg, 'error');
     } finally {
       setUploading(false);
     }

@@ -98,22 +98,50 @@ export function ProfilePage() {
           {officials.length === 0 ? (
             <div className="mt-6 card p-8 text-center text-sm text-slate-500">Belum ada data perangkat desa.</div>
           ) : (
-            <div className="mt-6 space-y-6">
-              {/* Kepala Desa — featured di atas */}
-              {officials.filter((o) => o.position.toLowerCase().includes('kepala')).map((o) => (
-                <OfficialFeatured key={o.id} official={o} />
-              ))}
-
-              {/* Sekretaris Desa */}
-              {officials.filter((o) => o.position.toLowerCase().includes('sekretaris')).length > 0 && (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-8 space-y-8">
+              {/* Kepala Desa — featured di atas, center */}
+              {officials.filter((o) => o.position.toLowerCase().includes('kepala')).length > 0 && (
+                <div className="flex justify-center">
                   {officials
-                    .filter((o) => o.position.toLowerCase().includes('sekretaris'))
-                    .map((o) => <OfficialCard key={o.id} official={o} highlight />)}
+                    .filter((o) => o.position.toLowerCase().includes('kepala'))
+                    .map((o) => (
+                      <OfficialFeatured key={o.id} official={o} />
+                    ))}
                 </div>
               )}
 
-              {/* Kaur & Kasi */}
+              {/* Garis hierarki connector */}
+              {officials.filter((o) => o.position.toLowerCase().includes('sekretaris')).length > 0 && (
+                <div className="flex justify-center">
+                  <div className="h-8 w-px bg-gradient-to-b from-brand-300 to-brand-100" />
+                </div>
+              )}
+
+              {/* Sekretaris Desa — center */}
+              {officials.filter((o) => o.position.toLowerCase().includes('sekretaris')).length > 0 && (
+                <div className="flex justify-center">
+                  <div className="grid w-full max-w-sm gap-4">
+                    {officials
+                      .filter((o) => o.position.toLowerCase().includes('sekretaris'))
+                      .map((o) => (
+                        <OfficialCard key={o.id} official={o} highlight />
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Garis hierarki connector */}
+              {officials.filter(
+                (o) =>
+                  !o.position.toLowerCase().includes('kepala') &&
+                  !o.position.toLowerCase().includes('sekretaris')
+              ).length > 0 && (
+                <div className="flex justify-center">
+                  <div className="h-8 w-px bg-gradient-to-b from-brand-300 to-brand-100" />
+                </div>
+              )}
+
+              {/* Kaur & Kasi — grid */}
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {officials
                   .filter(
@@ -121,7 +149,9 @@ export function ProfilePage() {
                       !o.position.toLowerCase().includes('kepala') &&
                       !o.position.toLowerCase().includes('sekretaris')
                   )
-                  .map((o) => <OfficialCard key={o.id} official={o} />)}
+                  .map((o) => (
+                    <OfficialCard key={o.id} official={o} />
+                  ))}
               </div>
             </div>
           )}
