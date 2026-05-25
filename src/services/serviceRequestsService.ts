@@ -79,7 +79,13 @@ export async function createServiceRequest(input: CreateRequestInput): Promise<{
     status: 'Diajukan',
   });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error('[Requests] INSERT FAILED to Supabase:', error);
+    console.error('[Requests] >>> Pastikan RLS policy "requests insert public" sudah di-apply.');
+    throw new Error(
+      `Pengajuan tidak dapat tersimpan: ${error.message}. Hubungi admin desa.`
+    );
+  }
   emit('request_created', { tracking_code, service_name: dummyServiceTypes.find((s) => s.id === input.service_type_id)?.name ?? 'Layanan' });
   return { tracking_code };
 }

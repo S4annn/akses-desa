@@ -82,10 +82,15 @@ export async function createComplaint(input: CreateComplaintInput): Promise<{
 
   if (error || !data) {
     // eslint-disable-next-line no-console
-    console.warn('[Complaints] insert failed, using memory fallback:', error?.message);
-    memoryComplaints.unshift(base);
-    emit('complaint_created', { tracking_code, category: input.category });
-    return { tracking_code, complaint: base };
+    console.error('[Complaints] INSERT FAILED to Supabase:', error);
+    console.error('[Complaints] >>> Pastikan RLS policy "complaints insert" sudah di-apply.');
+    console.error('[Complaints] >>> Pastikan tabel "villages" punya minimal 1 row.');
+    // Tetap throw agar UI bisa tampilkan error ke user
+    throw new Error(
+      error?.message
+        ? `Pengaduan tidak dapat tersimpan: ${error.message}. Hubungi admin desa.`
+        : 'Pengaduan tidak dapat tersimpan ke database. Hubungi admin desa.'
+    );
   }
 
   emit('complaint_created', { tracking_code, category: input.category });

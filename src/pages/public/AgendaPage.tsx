@@ -25,7 +25,7 @@ export function AgendaPage() {
       const d = new Date(a.start_date);
       return d.getMonth() === month && d.getFullYear() === year;
     });
-  }, [month, year]);
+  }, [agendas, month, year]);
 
   const calDays = useMemo(() => {
     const first = new Date(year, month, 1);

@@ -27,7 +27,7 @@ export function NewsPage() {
       if (search && !`${p.title} ${p.excerpt}`.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [search, filter]);
+  }, [posts, search, filter]);
 
   const featured = filtered[0];
   const rest = filtered.slice(1);

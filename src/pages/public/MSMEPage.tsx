@@ -30,7 +30,7 @@ export function MSMEPage() {
       if (search && !`${m.business_name} ${m.description}`.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [search, cat]);
+  }, [msmes, search, cat]);
 
   return (
     <div>

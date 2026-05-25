@@ -28,7 +28,7 @@ export function ServicesPage() {
       if (search && !s.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [search, category]);
+  }, [serviceTypes, search, category]);
 
   return (
     <div>

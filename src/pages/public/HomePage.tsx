@@ -128,10 +128,10 @@ function Hero() {
           transition={{ duration: 0.6, ease: 'easeOut' }}
           className="max-w-4xl"
         >
-          {/* Badge salam */}
+          {/* Badge */}
           <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold text-white backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
-            Selamat Datang
+            Portal Desa
           </span>
 
           {/* Salam besar */}

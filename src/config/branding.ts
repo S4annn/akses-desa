@@ -22,10 +22,11 @@ export const brand = {
    */
   logoImage: '/logo.png' as string | null,
 
-  // Nama yang ditampilkan di header
-  name: 'AksesDesa',
-  nameStart: 'Akses',
-  nameEnd: 'Desa',
+  // Nama yang ditampilkan di header (fallback kalau Supabase belum siap)
+  // Logo component akan otomatis fetch nama desa dari Supabase saat mount.
+  name: 'Desa Sukamaju',
+  nameStart: 'Desa ',
+  nameEnd: 'Sukamaju',
 
   // Tagline kecil di bawah nama logo
   tagline: 'Portal Digital Desa',

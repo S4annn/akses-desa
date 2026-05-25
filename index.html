@@ -5,60 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0F766E" />
     <meta name="color-scheme" content="light" />
-    <meta name="format-detection" content="telephone=no" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-    <!-- Apple PWA -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="AksesDesa" />
-
-    <!-- Default SEO meta -->
-    <title>AksesDesa — Portal Digital Desa Modern</title>
-    <meta name="description" content="Portal digital desa yang lebih mudah, transparan, dan responsif. Layanan administrasi, pengaduan warga, UMKM, dan AI assistant dalam satu akses." />
-    <meta name="keywords" content="portal desa, layanan desa online, pengaduan warga, UMKM desa, transparansi desa, surat domisili, surat keterangan usaha, AI desa, digitalisasi desa" />
+    <title>AksesDesa — Portal Digital Desa</title>
+    <meta name="description" content="Portal digital desa yang menghubungkan warga dengan layanan administrasi, informasi, dan kegiatan desa." />
+    <meta name="keywords" content="portal desa, website desa, layanan desa online, pengaduan warga, UMKM desa, transparansi desa" />
     <meta name="author" content="AksesDesa" />
     <meta name="robots" content="index, follow" />
 
-    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="AksesDesa" />
-    <meta property="og:title" content="AksesDesa — Portal Digital Desa Modern" />
-    <meta property="og:description" content="Layanan desa lebih mudah, cepat, dan transparan. Semua dalam satu akses." />
+    <meta property="og:title" content="AksesDesa — Portal Digital Desa" />
+    <meta property="og:description" content="Selamat datang di portal digital desa." />
     <meta property="og:image" content="/og-image.jpg" />
     <meta property="og:locale" content="id_ID" />
 
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AksesDesa — Portal Digital Desa Modern" />
-    <meta name="twitter:description" content="Layanan desa lebih mudah, cepat, dan transparan." />
+    <meta name="twitter:title" content="AksesDesa — Portal Digital Desa" />
+    <meta name="twitter:description" content="Selamat datang di portal digital desa." />
     <meta name="twitter:image" content="/og-image.jpg" />
 
-    <!-- JSON-LD -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "GovernmentOrganization",
-        "name": "AksesDesa",
-        "alternateName": "Portal Digital Desa",
-        "description": "Portal digital desa untuk layanan administrasi, pengaduan, UMKM, dan transparansi.",
-        "areaServed": "Indonesia",
-        "knowsLanguage": "id"
-      }
-    </script>
-
-    <!-- Resource hints -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://images.unsplash.com" />
     <link rel="preload" as="image" href="/desa.jpg" fetchpriority="high" />
 
-    <!-- Font dengan font-display:swap untuk no FOIT -->
     <link
       rel="preload"
       as="style"
@@ -74,7 +49,6 @@
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
     </noscript>
 
-    <!-- Leaflet only when needed — defer load -->
     <link
       rel="preload"
       as="style"
@@ -88,12 +62,10 @@
     />
 
     <style>
-      /* Critical inline styles untuk first paint cepat */
       *,*::before,*::after { box-sizing: border-box; }
       html { -webkit-text-size-adjust: 100%; }
       body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; background: #fafafa; color: #0F172A; }
 
-      /* Boot splash */
       #app-boot {
         position: fixed; inset: 0; z-index: 9999;
         display: grid; place-items: center;
@@ -133,7 +105,6 @@
       .boot-dots span:nth-child(3) { animation-delay: .4s; }
       @keyframes boot-dot { 0%,100% { transform: scale(1); opacity: .4; } 50% { transform: scale(1.4); opacity: 1; } }
       .boot-message { margin-top: 16px; font-size: 13px; font-weight: 500; opacity: .85; }
-      .boot-tagline { position: absolute; bottom: 32px; left: 0; right: 0; text-align: center; font-size: 11px; font-style: italic; opacity: .6; }
       @media (prefers-reduced-motion: reduce) {
         .boot-logo, .boot-logo::before, .boot-logo::after, .boot-dots span { animation: none; }
       }
@@ -146,16 +117,15 @@
           <svg viewBox="0 0 24 24"><path d="M12 3 L21 12 L18.5 12 L18.5 21 L14 21 L14 15 L10 15 L10 21 L5.5 21 L5.5 12 L3 12 Z" /></svg>
         </div>
         <h1 class="boot-title">Akses<span>Desa</span></h1>
-        <p class="boot-sub">Portal Digital Desa Modern</p>
+        <p class="boot-sub">Portal Digital Desa</p>
         <div class="boot-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-        <p class="boot-message">Mempersiapkan layanan desa...</p>
+        <p class="boot-message">Memuat...</p>
       </div>
-      <p class="boot-tagline">"Semua layanan desa, kini dalam satu akses."</p>
     </div>
     <div id="root"></div>
     <noscript>
       <div style="padding: 2rem; text-align: center; font-family: system-ui;">
-        AksesDesa membutuhkan JavaScript untuk berjalan. Silakan aktifkan JavaScript di browser Anda.
+        AksesDesa membutuhkan JavaScript untuk berjalan.
       </div>
     </noscript>
     <script>
