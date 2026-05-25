@@ -1,10 +1,12 @@
 import { Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { EmptyState } from '../../components/common/EmptyState';
+import { ImageUploader } from '../../components/common/ImageUploader';
 import { Modal } from '../../components/common/Modal';
 import { SmartImage } from '../../components/common/SmartImage';
 import { useToast } from '../../hooks/useToast';
 import { createGalleryItem, deleteGalleryItem, listGallery } from '../../services/galleryService';
+import { subscribeRefresh } from '../../services/notificationBus';
 import type { GalleryItem } from '../../types/app';
 
 export function GalleryAdminPage() {
@@ -24,6 +26,8 @@ export function GalleryAdminPage() {
 
   useEffect(() => {
     refresh();
+    const unsub = subscribeRefresh(['gallery_created', 'gallery_deleted'], refresh);
+    return unsub;
   }, []);
 
   async function remove(id: string) {
@@ -73,17 +77,10 @@ export function GalleryAdminPage() {
       )}
 
       <Modal open={creating} onClose={() => setCreating(false)} title="Tambah Foto Galeri">
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const fd = new FormData(e.currentTarget);
+        <GalleryForm
+          onSubmit={async (input) => {
             try {
-              await createGalleryItem({
-                title: String(fd.get('title') ?? ''),
-                category: String(fd.get('category') ?? 'Umum'),
-                image_url: String(fd.get('image_url') ?? ''),
-                description: String(fd.get('description') ?? ''),
-              });
+              await createGalleryItem(input);
               show('Foto ditambahkan', 'success');
               setCreating(false);
               refresh();
@@ -91,16 +88,64 @@ export function GalleryAdminPage() {
               show((err as Error).message || 'Gagal tambah foto', 'error');
             }
           }}
-          className="space-y-3"
-        >
-          <div><label className="label">Judul</label><input name="title" className="input" required /></div>
-          <div><label className="label">Kategori</label><input name="category" className="input" required placeholder="Lingkungan / Kegiatan / UMKM" /></div>
-          <div><label className="label">URL Gambar</label><input name="image_url" type="url" className="input" required placeholder="https://..." /></div>
-          <p className="text-[11px] text-slate-500">Tips: upload gambar ke Supabase Storage atau hosting eksternal, lalu tempelkan URL-nya di sini.</p>
-          <div><label className="label">Deskripsi (opsional)</label><textarea name="description" className="input" rows={2} /></div>
-          <div className="flex justify-end gap-2"><button type="button" onClick={() => setCreating(false)} className="btn-ghost">Batal</button><button className="btn-primary">Simpan</button></div>
-        </form>
+          onCancel={() => setCreating(false)}
+        />
       </Modal>
     </div>
+  );
+}
+
+function GalleryForm({
+  onSubmit,
+  onCancel,
+}: {
+  onSubmit: (input: { title: string; image_url: string; category: string; description?: string }) => Promise<void>;
+  onCancel: () => void;
+}) {
+  const [title, setTitle] = useState('');
+  const [category, setCategory] = useState('Kegiatan');
+  const [imageUrl, setImageUrl] = useState('');
+  const [description, setDescription] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { show } = useToast();
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!imageUrl) {
+      show('Silakan upload gambar terlebih dahulu', 'error');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await onSubmit({ title, category, image_url: imageUrl, description: description || undefined });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div>
+        <label className="label">Foto</label>
+        <ImageUploader value={imageUrl} onChange={setImageUrl} folder="gallery" aspectRatio="16/9" />
+      </div>
+      <div><label className="label">Judul</label><input className="input" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
+      <div>
+        <label className="label">Kategori</label>
+        <select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
+          <option>Kegiatan</option>
+          <option>Lingkungan</option>
+          <option>UMKM</option>
+          <option>Potensi</option>
+          <option>Pemerintahan</option>
+          <option>Lainnya</option>
+        </select>
+      </div>
+      <div><label className="label">Deskripsi (opsional)</label><textarea className="input" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+      <div className="flex justify-end gap-2">
+        <button type="button" onClick={onCancel} className="btn-ghost">Batal</button>
+        <button type="submit" disabled={submitting} className="btn-primary">{submitting ? 'Menyimpan...' : 'Simpan'}</button>
+      </div>
+    </form>
   );
 }

@@ -4,6 +4,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../hooks/useToast';
 import { createAgenda, deleteAgenda, listAgendas } from '../../services/agendaService';
+import { subscribeRefresh } from '../../services/notificationBus';
 import type { Agenda } from '../../types/app';
 import { formatDateTime } from '../../utils/formatDate';
 
@@ -24,6 +25,8 @@ export function AgendaAdminPage() {
 
   useEffect(() => {
     refresh();
+    const unsub = subscribeRefresh(['agenda_created', 'agenda_updated', 'agenda_deleted'], refresh);
+    return unsub;
   }, []);
 
   async function remove(id: string) {

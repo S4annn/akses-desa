@@ -1,8 +1,9 @@
 import { Calendar, Clock, MapPin } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { EmptyState } from '../../components/common/EmptyState';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Seo } from '../../components/common/Seo';
+import { useLiveData } from '../../hooks/useLiveData';
 import { listAgendas } from '../../services/agendaService';
 import type { Agenda } from '../../types/app';
 import { formatDate } from '../../utils/formatDate';
@@ -13,14 +14,11 @@ export function AgendaPage() {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth());
   const [year] = useState(now.getFullYear());
-  const [agendas, setAgendas] = useState<Agenda[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    listAgendas()
-      .then(setAgendas)
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: agendas = [], loading } = useLiveData<Agenda[]>(
+    () => listAgendas(),
+    ['agenda_created', 'agenda_updated', 'agenda_deleted'],
+    []
+  );
 
   const filtered = useMemo(() => {
     return agendas.filter((a) => {

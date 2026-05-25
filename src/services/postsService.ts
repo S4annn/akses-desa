@@ -82,8 +82,10 @@ export async function createPost(input: CreatePostInput): Promise<Post> {
 
   if (error || !data) {
     memoryPosts.unshift(newPost);
+    emit('post_created', { id: newPost.id });
     return newPost;
   }
+  emit('post_created', { id: data.id });
   return normalize(data);
 }
 
@@ -91,6 +93,7 @@ export async function updatePost(id: string, patch: Partial<CreatePostInput>): P
   if (!supabase) {
     const idx = memoryPosts.findIndex((p) => p.id === id);
     if (idx >= 0) memoryPosts[idx] = { ...memoryPosts[idx], ...patch };
+    emit('post_updated', { id });
     return;
   }
   const { error } = await supabase
@@ -106,16 +109,19 @@ export async function updatePost(id: string, patch: Partial<CreatePostInput>): P
     })
     .eq('id', id);
   if (error) throw new Error(error.message);
+  emit('post_updated', { id });
 }
 
 export async function deletePost(id: string): Promise<void> {
   if (!supabase) {
     const idx = memoryPosts.findIndex((p) => p.id === id);
     if (idx >= 0) memoryPosts.splice(idx, 1);
+    emit('post_deleted', { id });
     return;
   }
   const { error } = await supabase.from('posts').delete().eq('id', id);
   if (error) throw new Error(error.message);
+  emit('post_deleted', { id });
 }
 
 function normalize(row: Record<string, unknown>): Post {

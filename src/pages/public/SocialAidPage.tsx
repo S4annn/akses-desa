@@ -1,9 +1,10 @@
 import { CheckCircle2, FileText, HandHeart, Info, Send } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Modal } from '../../components/common/Modal';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Seo } from '../../components/common/Seo';
+import { useLiveData } from '../../hooks/useLiveData';
 import { useToast } from '../../hooks/useToast';
 import { listActiveAids, submitAidApplication } from '../../services/socialAidService';
 import type { SocialAid } from '../../types/app';
@@ -18,15 +19,12 @@ const samplePublicRecipients = [
 export function SocialAidPage() {
   const [active, setActive] = useState<SocialAid | null>(null);
   const [submitted, setSubmitted] = useState<string | null>(null);
-  const [aids, setAids] = useState<SocialAid[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: aids = [], loading } = useLiveData<SocialAid[]>(
+    () => listActiveAids(),
+    ['aid_created', 'aid_updated', 'aid_deleted'],
+    []
+  );
   const { show } = useToast();
-
-  useEffect(() => {
-    listActiveAids()
-      .then(setAids)
-      .finally(() => setLoading(false));
-  }, []);
 
   return (
     <div>

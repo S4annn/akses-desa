@@ -1,10 +1,11 @@
 import { Search } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { EmptyState } from '../../components/common/EmptyState';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Seo } from '../../components/common/Seo';
 import { SmartImage } from '../../components/common/SmartImage';
+import { useLiveData } from '../../hooks/useLiveData';
 import { listPublicPosts } from '../../services/postsService';
 import type { Post } from '../../types/app';
 import { formatDate } from '../../utils/formatDate';
@@ -14,14 +15,11 @@ const filters = ['Semua', 'berita', 'pengumuman', 'kegiatan', 'layanan'] as cons
 export function NewsPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<(typeof filters)[number]>('Semua');
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    listPublicPosts()
-      .then(setPosts)
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: posts = [], loading } = useLiveData<Post[]>(
+    () => listPublicPosts(),
+    ['post_created', 'post_updated', 'post_deleted'],
+    []
+  );
 
   const filtered = useMemo(() => {
     return posts.filter((p) => {

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { BackButton } from '../components/admin/BackButton';
 import { Logo } from '../components/common/Logo';
 import { NotificationDropdown } from '../components/admin/NotificationDropdown';
 import { useAuth } from '../hooks/useAuth';
@@ -109,15 +110,17 @@ export function AdminLayout() {
         {/* Topbar */}
         <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
           <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
-            <button onClick={() => setOpen(true)} className="rounded-lg p-2 hover:bg-slate-100 lg:hidden">
+            <button onClick={() => setOpen(true)} className="rounded-lg p-2 hover:bg-slate-100 lg:hidden" aria-label="Buka menu">
               <Menu className="h-5 w-5" />
             </button>
+            <BackButton />
             <div className="relative hidden flex-1 max-w-md sm:block">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="search"
                 placeholder="Cari pengajuan, pengaduan, UMKM..."
                 className="input pl-9"
+                aria-label="Search"
               />
             </div>
             <div className="ml-auto flex items-center gap-2">
@@ -139,7 +142,7 @@ export function AdminLayout() {
         <div className="px-4 py-6 sm:px-6 lg:px-8">
           <div className="mb-4 flex items-center gap-2 text-xs text-slate-500">
             <Sparkles className="h-3.5 w-3.5 text-brand-600" />
-            <span>Modus admin AksesDesa — kelola layanan desa secara terpusat.</span>
+            <span>Dashboard admin AksesDesa — kelola layanan desa secara terpusat.</span>
           </div>
           <Outlet />
         </div>

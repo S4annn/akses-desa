@@ -1,10 +1,12 @@
 import { Edit, Loader2, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { EmptyState } from '../../components/common/EmptyState';
+import { ImageUploader } from '../../components/common/ImageUploader';
 import { Modal } from '../../components/common/Modal';
 import { SmartImage } from '../../components/common/SmartImage';
 import { useToast } from '../../hooks/useToast';
 import { generateVillageNews } from '../../services/geminiService';
+import { subscribeRefresh } from '../../services/notificationBus';
 import { createPost, deletePost, listAllPosts } from '../../services/postsService';
 import type { Post, PostType } from '../../types/app';
 import { formatDate } from '../../utils/formatDate';
@@ -26,6 +28,8 @@ export function PostsAdminPage() {
 
   useEffect(() => {
     refresh();
+    const unsub = subscribeRefresh(['post_created', 'post_updated', 'post_deleted'], refresh);
+    return unsub;
   }, []);
 
   async function remove(id: string) {
@@ -100,6 +104,7 @@ interface CreateInput {
   excerpt: string;
   content: string;
   type: PostType;
+  image_url?: string;
   is_published: boolean;
 }
 
@@ -108,6 +113,7 @@ function NewArticleForm({ onCreate }: { onCreate: (p: CreateInput) => Promise<vo
   const [excerpt, setExcerpt] = useState('');
   const [content, setContent] = useState('');
   const [type, setType] = useState<PostType>('berita');
+  const [imageUrl, setImageUrl] = useState('');
   const [points, setPoints] = useState('');
   const [generating, setGenerating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -129,7 +135,7 @@ function NewArticleForm({ onCreate }: { onCreate: (p: CreateInput) => Promise<vo
     e.preventDefault();
     setSubmitting(true);
     try {
-      await onCreate({ title, excerpt, content, type, is_published: true });
+      await onCreate({ title, excerpt, content, type, image_url: imageUrl || undefined, is_published: true });
     } finally {
       setSubmitting(false);
     }
@@ -155,6 +161,10 @@ function NewArticleForm({ onCreate }: { onCreate: (p: CreateInput) => Promise<vo
           </select>
         </div>
         <div className="sm:col-span-2"><label className="label">Judul</label><input value={title} onChange={(e) => setTitle(e.target.value)} className="input" required /></div>
+        <div className="sm:col-span-2">
+          <label className="label">Gambar utama</label>
+          <ImageUploader value={imageUrl} onChange={setImageUrl} folder="posts" aspectRatio="16/9" />
+        </div>
         <div className="sm:col-span-2"><label className="label">Ringkasan</label><textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} className="input" rows={2} required /></div>
         <div className="sm:col-span-2"><label className="label">Konten</label><textarea value={content} onChange={(e) => setContent(e.target.value)} className="input" rows={6} required /></div>
       </div>

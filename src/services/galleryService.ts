@@ -1,5 +1,6 @@
 import { galleryItems as fallback } from '../data/dummyData';
 import type { GalleryItem } from '../types/app';
+import { emit } from './notificationBus';
 import { supabase } from './supabaseClient';
 import { getActiveVillage } from './villageService';
 
@@ -30,6 +31,7 @@ export async function createGalleryItem(input: {
   };
   if (!supabase) {
     memory.unshift(newItem);
+    emit('gallery_created', { id: newItem.id });
     return newItem;
   }
   const village = await getActiveVillage();
@@ -40,8 +42,10 @@ export async function createGalleryItem(input: {
     .single();
   if (error || !data) {
     memory.unshift(newItem);
+    emit('gallery_created', { id: newItem.id });
     return newItem;
   }
+  emit('gallery_created', { id: data.id });
   return normalize(data);
 }
 
@@ -49,10 +53,12 @@ export async function deleteGalleryItem(id: string): Promise<void> {
   if (!supabase) {
     const idx = memory.findIndex((g) => g.id === id);
     if (idx >= 0) memory.splice(idx, 1);
+    emit('gallery_deleted', { id });
     return;
   }
   const { error } = await supabase.from('gallery_items').delete().eq('id', id);
   if (error) throw new Error(error.message);
+  emit('gallery_deleted', { id });
 }
 
 function normalize(row: Record<string, unknown>): GalleryItem {

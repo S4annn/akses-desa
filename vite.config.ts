@@ -12,7 +12,9 @@ export default defineConfig({
   build: {
     target: 'es2020',
     sourcemap: false,
+    cssCodeSplit: true,
     chunkSizeWarningLimit: 800,
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -23,6 +25,7 @@ export default defineConfig({
           'supabase-vendor': ['@supabase/supabase-js'],
           'ai-vendor': ['@google/generative-ai'],
           'map-vendor': ['leaflet', 'react-leaflet'],
+          'pdf-vendor': ['jspdf'],
         },
       },
     },

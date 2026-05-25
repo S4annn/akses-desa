@@ -82,6 +82,8 @@ export interface Complaint {
   location: string;
   description: string;
   is_anonymous: boolean;
+  citizen_name?: string;
+  phone?: string;
   citizen_urgency: Urgency;
   ai_category?: string;
   ai_urgency?: Urgency;

@@ -135,6 +135,8 @@ export async function listComplaintsForAdmin(): Promise<Complaint[]> {
       location: String(c.location ?? '-'),
       description: String(c.description ?? ''),
       is_anonymous: Boolean(c.is_anonymous),
+      citizen_name: (c.citizen_name as string) ?? undefined,
+      phone: (c.phone as string) ?? undefined,
       citizen_urgency: (c.citizen_urgency as Urgency) ?? 'sedang',
       ai_category: (c.ai_category as string) ?? undefined,
       ai_urgency: (c.ai_urgency as Urgency) ?? undefined,
@@ -160,6 +162,7 @@ export async function updateComplaintStatus(
     if (idx >= 0) {
       memoryComplaints[idx] = { ...memoryComplaints[idx], status, admin_response: adminResponse };
     }
+    emit('complaint_updated', { id });
     return;
   }
 
@@ -168,4 +171,51 @@ export async function updateComplaintStatus(
     .update({ status, admin_response: adminResponse ?? null, updated_at: new Date().toISOString() })
     .eq('id', id);
   if (error) throw new Error(error.message);
+  emit('complaint_updated', { id });
+}
+
+export async function deleteComplaint(id: string): Promise<void> {
+  if (!supabase) {
+    const idx = memoryComplaints.findIndex((c) => c.id === id);
+    if (idx >= 0) memoryComplaints.splice(idx, 1);
+    emit('complaint_deleted', { id });
+    return;
+  }
+  const { error } = await supabase.from('complaints').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  emit('complaint_deleted', { id });
+}
+
+export async function findComplaintByTrackingCode(code: string): Promise<Complaint | null> {
+  const normalized = code.trim().toUpperCase();
+  if (!supabase) {
+    return memoryComplaints.find((c) => c.tracking_code === normalized) ?? null;
+  }
+  const { data, error } = await supabase
+    .from('complaints')
+    .select('*')
+    .eq('tracking_code', normalized)
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    id: String(data.id),
+    tracking_code: String(data.tracking_code),
+    category: String(data.category ?? 'Lainnya'),
+    location: String(data.location ?? '-'),
+    description: String(data.description ?? ''),
+    is_anonymous: Boolean(data.is_anonymous),
+    citizen_name: (data.citizen_name as string) ?? undefined,
+    phone: (data.phone as string) ?? undefined,
+    citizen_urgency: (data.citizen_urgency as Urgency) ?? 'sedang',
+    ai_category: (data.ai_category as string) ?? undefined,
+    ai_urgency: (data.ai_urgency as Urgency) ?? undefined,
+    ai_summary: (data.ai_summary as string) ?? undefined,
+    ai_recommended_action: (data.ai_recommended_action as string) ?? undefined,
+    status: (data.status as ComplaintStatus) ?? 'Masuk',
+    admin_response: (data.admin_response as string) ?? undefined,
+    latitude: data.latitude ?? undefined,
+    longitude: data.longitude ?? undefined,
+    photo_url: (data.photo_url as string) ?? undefined,
+    created_at: String(data.created_at ?? new Date().toISOString()),
+  };
 }

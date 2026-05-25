@@ -1,8 +1,9 @@
-import { CheckCircle2, Edit, Plus, ShieldCheck, Store, ToggleLeft, ToggleRight, XCircle } from 'lucide-react';
+import { CheckCircle2, Edit, Plus, ShieldCheck, Store, ToggleLeft, ToggleRight, Trash2, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../hooks/useToast';
-import { listAllMSMEs, registerMSME, toggleMSMEVerification } from '../../services/msmeService';
+import { deleteMSME, listAllMSMEs, registerMSME, toggleMSMEVerification } from '../../services/msmeService';
+import { subscribeRefresh } from '../../services/notificationBus';
 import type { MSME } from '../../types/app';
 
 export function MSMEAdminPage() {
@@ -24,6 +25,8 @@ export function MSMEAdminPage() {
 
   useEffect(() => {
     refresh();
+    const unsub = subscribeRefresh(['msme_created', 'msme_updated', 'msme_deleted'], refresh);
+    return unsub;
   }, []);
 
   const filtered = useMemo(() => {
@@ -49,6 +52,17 @@ export function MSMEAdminPage() {
       show(currentlyVerified ? 'Verifikasi dibatalkan' : 'UMKM berhasil diverifikasi', 'success');
     } catch (err) {
       show((err as Error).message || 'Gagal update status', 'error');
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('Hapus UMKM ini secara permanen? Tindakan tidak dapat dibatalkan.')) return;
+    try {
+      await deleteMSME(id);
+      setItems((arr) => arr.filter((m) => m.id !== id));
+      show('UMKM dihapus', 'success');
+    } catch (err) {
+      show((err as Error).message || 'Gagal hapus', 'error');
     }
   }
 
@@ -150,7 +164,15 @@ export function MSMEAdminPage() {
                           </>
                         )}
                       </button>
-                      <button className="btn-ghost"><Edit className="h-4 w-4" /></button>
+                      <button className="btn-ghost" aria-label="Edit"><Edit className="h-4 w-4" /></button>
+                      <button
+                        onClick={() => handleDelete(m.id)}
+                        className="btn-ghost text-rose-600"
+                        aria-label="Hapus UMKM"
+                        title="Hapus"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>

@@ -39,7 +39,7 @@ export function Footer() {
           <ul className="mt-3 space-y-2 text-sm">
             <li><Link to="/layanan" className="hover:text-white">Daftar Layanan</Link></li>
             <li><Link to="/ajukan" className="hover:text-white">Ajukan Surat</Link></li>
-            <li><Link to="/cek-status" className="hover:text-white">Cek Status</Link></li>
+            <li><Link to="/cek-status" className="hover:text-white">Cek Status Pengajuan/Pengaduan</Link></li>
             <li><Link to="/bansos" className="hover:text-white">Bantuan Sosial</Link></li>
             <li><Link to="/pengaduan" className="hover:text-white">Pengaduan Warga</Link></li>
           </ul>

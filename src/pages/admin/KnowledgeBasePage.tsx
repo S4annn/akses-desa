@@ -9,6 +9,7 @@ import {
   listAllKnowledge,
   updateKnowledge,
 } from '../../services/knowledgeBaseService';
+import { subscribeRefresh } from '../../services/notificationBus';
 import type { ChatbotKnowledge } from '../../types/app';
 
 export function KnowledgeBasePage() {
@@ -29,6 +30,8 @@ export function KnowledgeBasePage() {
 
   useEffect(() => {
     refresh();
+    const unsub = subscribeRefresh(['kb_changed'], refresh);
+    return unsub;
   }, []);
 
   async function toggle(id: string, current: boolean) {

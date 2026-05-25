@@ -1,5 +1,6 @@
 import { socialAids as fallback } from '../data/dummyData';
 import type { SocialAid } from '../types/app';
+import { emit } from './notificationBus';
 import { supabase } from './supabaseClient';
 import { getActiveVillage } from './villageService';
 
@@ -42,6 +43,7 @@ export async function createAid(input: CreateAidInput): Promise<SocialAid> {
   };
   if (!supabase) {
     memory.unshift(newItem);
+    emit('aid_created', { id: newItem.id });
     return newItem;
   }
   const village = await getActiveVillage();
@@ -55,8 +57,10 @@ export async function createAid(input: CreateAidInput): Promise<SocialAid> {
     .single();
   if (error || !data) {
     memory.unshift(newItem);
+    emit('aid_created', { id: newItem.id });
     return newItem;
   }
+  emit('aid_created', { id: data.id });
   return normalize(data);
 }
 
@@ -64,20 +68,24 @@ export async function updateAid(id: string, patch: Partial<CreateAidInput>): Pro
   if (!supabase) {
     const idx = memory.findIndex((s) => s.id === id);
     if (idx >= 0) memory[idx] = { ...memory[idx], ...patch };
+    emit('aid_updated', { id });
     return;
   }
   const { error } = await supabase.from('social_aids').update(patch).eq('id', id);
   if (error) throw new Error(error.message);
+  emit('aid_updated', { id });
 }
 
 export async function deleteAid(id: string): Promise<void> {
   if (!supabase) {
     const idx = memory.findIndex((s) => s.id === id);
     if (idx >= 0) memory.splice(idx, 1);
+    emit('aid_deleted', { id });
     return;
   }
   const { error } = await supabase.from('social_aids').delete().eq('id', id);
   if (error) throw new Error(error.message);
+  emit('aid_deleted', { id });
 }
 
 export async function submitAidApplication(input: {

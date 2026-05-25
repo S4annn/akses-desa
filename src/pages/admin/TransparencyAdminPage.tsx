@@ -4,6 +4,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../hooks/useToast';
 import { createBudgetItem, deleteBudgetItem, listBudgetItems } from '../../services/budgetService';
+import { subscribeRefresh } from '../../services/notificationBus';
 import type { BudgetItem } from '../../types/app';
 import { formatRupiah } from '../../utils/formatDate';
 
@@ -24,6 +25,8 @@ export function TransparencyAdminPage() {
 
   useEffect(() => {
     refresh();
+    const unsub = subscribeRefresh(['budget_changed'], refresh);
+    return unsub;
   }, []);
 
   async function remove(id: string) {

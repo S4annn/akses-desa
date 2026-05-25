@@ -1,5 +1,6 @@
 import { knowledgeBase as fallback } from '../data/dummyData';
 import type { ChatbotKnowledge } from '../types/app';
+import { emit } from './notificationBus';
 import { supabase } from './supabaseClient';
 import { getActiveVillage } from './villageService';
 
@@ -35,6 +36,7 @@ export async function createKnowledge(input: {
   const newItem: ChatbotKnowledge = { id: `mem-${Date.now()}`, ...input };
   if (!supabase) {
     memory.unshift(newItem);
+    emit('kb_changed', { id: newItem.id });
     return newItem;
   }
   const village = await getActiveVillage();
@@ -45,8 +47,10 @@ export async function createKnowledge(input: {
     .single();
   if (error || !data) {
     memory.unshift(newItem);
+    emit('kb_changed', { id: newItem.id });
     return newItem;
   }
+  emit('kb_changed', { id: data.id });
   return normalize(data);
 }
 
@@ -57,20 +61,24 @@ export async function updateKnowledge(
   if (!supabase) {
     const idx = memory.findIndex((k) => k.id === id);
     if (idx >= 0) memory[idx] = { ...memory[idx], ...patch };
+    emit('kb_changed', { id });
     return;
   }
   const { error } = await supabase.from('chatbot_knowledge').update(patch).eq('id', id);
   if (error) throw new Error(error.message);
+  emit('kb_changed', { id });
 }
 
 export async function deleteKnowledge(id: string): Promise<void> {
   if (!supabase) {
     const idx = memory.findIndex((k) => k.id === id);
     if (idx >= 0) memory.splice(idx, 1);
+    emit('kb_changed', { id });
     return;
   }
   const { error } = await supabase.from('chatbot_knowledge').delete().eq('id', id);
   if (error) throw new Error(error.message);
+  emit('kb_changed', { id });
 }
 
 function normalize(row: Record<string, unknown>): ChatbotKnowledge {

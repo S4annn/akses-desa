@@ -1,24 +1,27 @@
 import { Bot, Menu, ShieldCheck, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
+import { LanguageToggle } from '../components/common/LanguageToggle';
 import { Logo } from '../components/common/Logo';
-
-const links = [
-  { to: '/', label: 'Beranda' },
-  { to: '/profil', label: 'Profil' },
-  { to: '/layanan', label: 'Layanan' },
-  { to: '/pengaduan', label: 'Pengaduan' },
-  { to: '/bansos', label: 'Bansos' },
-  { to: '/umkm', label: 'UMKM' },
-  { to: '/berita', label: 'Berita' },
-  { to: '/agenda', label: 'Agenda' },
-  { to: '/transparansi', label: 'Transparansi' },
-];
+import { useI18n } from '../i18n/useI18n';
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { t } = useI18n();
+
+  const links = [
+    { to: '/', label: t('common.home') },
+    { to: '/profil', label: t('common.profile') },
+    { to: '/layanan', label: t('common.services') },
+    { to: '/pengaduan', label: t('common.complaints') },
+    { to: '/bansos', label: t('common.socialAid') },
+    { to: '/umkm', label: t('common.msme') },
+    { to: '/berita', label: t('common.news') },
+    { to: '/agenda', label: t('common.agenda') },
+    { to: '/transparansi', label: t('common.transparency') },
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -54,6 +57,7 @@ export function Navbar() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          <LanguageToggle className="hidden sm:inline-flex" />
           <Link to="/chatbot" className="hidden sm:inline-flex btn-ghost text-brand-700">
             <Bot className="h-4 w-4" />
             AI Desa

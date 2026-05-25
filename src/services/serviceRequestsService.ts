@@ -123,6 +123,7 @@ export async function updateRequestStatus(
     if (idx >= 0) {
       memoryRequests[idx] = { ...memoryRequests[idx], status, admin_note: adminNote };
     }
+    emit('request_updated', { id });
     return;
   }
 
@@ -131,6 +132,19 @@ export async function updateRequestStatus(
     .update({ status, admin_note: adminNote ?? null, updated_at: new Date().toISOString() })
     .eq('id', id);
   if (error) throw new Error(error.message);
+  emit('request_updated', { id });
+}
+
+export async function deleteRequest(id: string): Promise<void> {
+  if (!supabase) {
+    const idx = memoryRequests.findIndex((r) => r.id === id);
+    if (idx >= 0) memoryRequests.splice(idx, 1);
+    emit('request_deleted', { id });
+    return;
+  }
+  const { error } = await supabase.from('service_requests').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  emit('request_deleted', { id });
 }
 
 export const isUsingRealSupabase = isSupabaseConfigured;

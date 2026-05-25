@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../hooks/useToast';
+import { subscribeRefresh } from '../../services/notificationBus';
 import { createAid, deleteAid, listAllAids, updateAid } from '../../services/socialAidService';
 import type { SocialAid } from '../../types/app';
 
@@ -24,6 +25,8 @@ export function SocialAidAdminPage() {
 
   useEffect(() => {
     refresh();
+    const unsub = subscribeRefresh(['aid_created', 'aid_updated', 'aid_deleted'], refresh);
+    return unsub;
   }, []);
 
   async function remove(id: string) {

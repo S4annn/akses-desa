@@ -1,10 +1,10 @@
 import { Download, FileSpreadsheet, TrendingUp, Wallet } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { EmptyState } from '../../components/common/EmptyState';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Seo } from '../../components/common/Seo';
 import { StatCard } from '../../components/common/StatCard';
+import { useLiveData } from '../../hooks/useLiveData';
 import { listBudgetItems } from '../../services/budgetService';
 import type { BudgetItem } from '../../types/app';
 import { formatRupiah } from '../../utils/formatDate';
@@ -12,14 +12,11 @@ import { formatRupiah } from '../../utils/formatDate';
 const COLORS = ['#0F766E', '#14B8A6', '#5EEAD4', '#F59E0B', '#F43F5E', '#38BDF8', '#8B5CF6', '#EC4899'];
 
 export function TransparencyPage() {
-  const [items, setItems] = useState<BudgetItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    listBudgetItems()
-      .then(setItems)
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: items = [], loading } = useLiveData<BudgetItem[]>(
+    () => listBudgetItems(),
+    ['budget_changed'],
+    []
+  );
 
   const total = items.reduce((s, b) => s + b.allocated_amount, 0);
   const realized = items.reduce((s, b) => s + b.realized_amount, 0);

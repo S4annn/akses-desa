@@ -1,5 +1,6 @@
 import { budgetItems as fallback } from '../data/dummyData';
 import type { BudgetItem } from '../types/app';
+import { emit } from './notificationBus';
 import { supabase } from './supabaseClient';
 import { getActiveVillage } from './villageService';
 
@@ -27,6 +28,7 @@ export async function createBudgetItem(input: {
   const newItem: BudgetItem = { id: `mem-${Date.now()}`, ...input };
   if (!supabase) {
     memory.unshift(newItem);
+    emit('budget_changed', { id: newItem.id });
     return newItem;
   }
   const village = await getActiveVillage();
@@ -37,8 +39,10 @@ export async function createBudgetItem(input: {
     .single();
   if (error || !data) {
     memory.unshift(newItem);
+    emit('budget_changed', { id: newItem.id });
     return newItem;
   }
+  emit('budget_changed', { id: data.id });
   return normalize(data);
 }
 
@@ -49,20 +53,24 @@ export async function updateBudgetItem(
   if (!supabase) {
     const idx = memory.findIndex((b) => b.id === id);
     if (idx >= 0) memory[idx] = { ...memory[idx], ...patch };
+    emit('budget_changed', { id });
     return;
   }
   const { error } = await supabase.from('budget_items').update(patch).eq('id', id);
   if (error) throw new Error(error.message);
+  emit('budget_changed', { id });
 }
 
 export async function deleteBudgetItem(id: string): Promise<void> {
   if (!supabase) {
     const idx = memory.findIndex((b) => b.id === id);
     if (idx >= 0) memory.splice(idx, 1);
+    emit('budget_changed', { id });
     return;
   }
   const { error } = await supabase.from('budget_items').delete().eq('id', id);
   if (error) throw new Error(error.message);
+  emit('budget_changed', { id });
 }
 
 function normalize(row: Record<string, unknown>): BudgetItem {

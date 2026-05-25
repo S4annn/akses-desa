@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useLiveData } from '../../hooks/useLiveData';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { Seo } from '../../components/common/Seo';
 import { SmartImage } from '../../components/common/SmartImage';
@@ -405,10 +406,11 @@ function HowItWorks() {
 }
 
 function ComplaintsPreview() {
-  const [items, setItems] = useState<Complaint[]>([]);
-  useEffect(() => {
-    listPublicComplaints(4).then(setItems).catch(() => setItems([]));
-  }, []);
+  const { data: items = [] } = useLiveData<Complaint[]>(
+    () => listPublicComplaints(4),
+    ['complaint_created', 'complaint_updated', 'complaint_deleted'],
+    []
+  );
   return (
     <section className="container-page py-14">
       <SectionHeader
@@ -488,10 +490,11 @@ function FakeMap() {
 }
 
 function MSMEPreview() {
-  const [items, setItems] = useState<MSME[]>([]);
-  useEffect(() => {
-    listPublicMSMEs().then((d) => setItems(d.slice(0, 4))).catch(() => setItems([]));
-  }, []);
+  const { data: items = [] } = useLiveData<MSME[]>(
+    async () => (await listPublicMSMEs()).slice(0, 4),
+    ['msme_created', 'msme_updated', 'msme_deleted'],
+    []
+  );
   return (
     <section className="container-page py-14">
       <SectionHeader
@@ -594,10 +597,11 @@ function AISection() {
 }
 
 function NewsPreview() {
-  const [items, setItems] = useState<Post[]>([]);
-  useEffect(() => {
-    listPublicPosts().then((d) => setItems(d.slice(0, 3))).catch(() => setItems([]));
-  }, []);
+  const { data: items = [] } = useLiveData<Post[]>(
+    async () => (await listPublicPosts()).slice(0, 3),
+    ['post_created', 'post_updated', 'post_deleted'],
+    []
+  );
 
   return (
     <section className="container-page pb-20 pt-14">

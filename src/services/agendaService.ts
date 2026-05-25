@@ -1,5 +1,6 @@
 import { agendas as fallback } from '../data/dummyData';
 import type { Agenda } from '../types/app';
+import { emit } from './notificationBus';
 import { supabase } from './supabaseClient';
 import { getActiveVillage } from './villageService';
 
@@ -37,6 +38,7 @@ export async function createAgenda(input: CreateAgendaInput): Promise<Agenda> {
 
   if (!supabase) {
     memory.unshift(newItem);
+    emit('agenda_created', { id: newItem.id });
     return newItem;
   }
   const village = await getActiveVillage();
@@ -55,8 +57,10 @@ export async function createAgenda(input: CreateAgendaInput): Promise<Agenda> {
     .single();
   if (error || !data) {
     memory.unshift(newItem);
+    emit('agenda_created', { id: newItem.id });
     return newItem;
   }
+  emit('agenda_created', { id: data.id });
   return normalize(data);
 }
 
@@ -64,20 +68,24 @@ export async function updateAgenda(id: string, patch: Partial<CreateAgendaInput>
   if (!supabase) {
     const idx = memory.findIndex((a) => a.id === id);
     if (idx >= 0) memory[idx] = { ...memory[idx], ...patch };
+    emit('agenda_updated', { id });
     return;
   }
   const { error } = await supabase.from('agendas').update(patch).eq('id', id);
   if (error) throw new Error(error.message);
+  emit('agenda_updated', { id });
 }
 
 export async function deleteAgenda(id: string): Promise<void> {
   if (!supabase) {
     const idx = memory.findIndex((a) => a.id === id);
     if (idx >= 0) memory.splice(idx, 1);
+    emit('agenda_deleted', { id });
     return;
   }
   const { error } = await supabase.from('agendas').delete().eq('id', id);
   if (error) throw new Error(error.message);
+  emit('agenda_deleted', { id });
 }
 
 function normalize(row: Record<string, unknown>): Agenda {

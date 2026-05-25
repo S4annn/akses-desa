@@ -1,8 +1,10 @@
-import { CheckCircle2, Image as ImageIcon, MapPin, MessageSquareWarning, ShieldOff, Sparkles } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { CheckCircle2, Copy, FileSearch, Image as ImageIcon, MapPin, MessageSquareWarning, ShieldOff, Sparkles } from 'lucide-react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { Link } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
 import { StatusBadge } from '../../components/common/StatusBadge';
+import { useLiveData } from '../../hooks/useLiveData';
 import { useToast } from '../../hooks/useToast';
 import { createComplaint, listPublicComplaints } from '../../services/complaintsService';
 import type { Complaint, Urgency } from '../../types/app';
@@ -37,11 +39,11 @@ export function ComplaintPage() {
   const isAnon = watch('is_anonymous');
   const { show } = useToast();
   const [result, setResult] = useState<{ code: string; complaint: Complaint } | null>(null);
-  const [publicList, setPublicList] = useState<Complaint[]>([]);
-
-  useEffect(() => {
-    listPublicComplaints(8).then(setPublicList).catch(() => setPublicList([]));
-  }, [result]);
+  const { data: publicList = [] } = useLiveData<Complaint[]>(
+    () => listPublicComplaints(8),
+    ['complaint_created', 'complaint_updated', 'complaint_deleted'],
+    []
+  );
 
   async function onSubmit(data: FormData) {
     try {
@@ -68,6 +70,11 @@ export function ComplaintPage() {
         eyebrow="Pengaduan Warga"
         title="Sampaikan masalah, bantu desa lebih responsif"
         description="Setiap laporan tercatat dan ditindaklanjuti secara transparan."
+        action={
+          <Link to="/cek-status" className="btn bg-white text-brand-800 hover:bg-cream">
+            <FileSearch className="h-4 w-4" /> Cek Status Laporan
+          </Link>
+        }
       />
 
       <div className="container-page grid gap-6 py-10 lg:grid-cols-3">
@@ -138,8 +145,29 @@ export function ComplaintPage() {
                 <CheckCircle2 className="h-5 w-5" />
               </span>
               <h4 className="mt-2 text-base font-semibold text-emerald-900">Pengaduan berhasil dikirim</h4>
-              <p className="mt-1 text-sm text-emerald-800">Kode: <span className="font-mono font-bold">{result.code}</span></p>
-              <div className="mt-3 rounded-xl border border-emerald-200 bg-white p-3">
+              <p className="mt-1 text-sm text-emerald-800">
+                Simpan kode tracking di bawah untuk memantau status laporan Anda.
+              </p>
+              <div className="mt-3 flex items-center gap-2 rounded-xl border border-dashed border-emerald-400 bg-white px-3 py-2">
+                <span className="font-mono text-base font-bold tracking-wider text-emerald-800">{result.code}</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(result.code);
+                    show('Kode disalin', 'success');
+                  }}
+                  className="ml-auto inline-flex items-center gap-1 rounded-md bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-200"
+                  type="button"
+                >
+                  <Copy className="h-3 w-3" /> Salin
+                </button>
+              </div>
+              <Link
+                to={`/cek-status?code=${result.code}`}
+                className="btn-secondary mt-3 w-full justify-center"
+              >
+                <FileSearch className="h-4 w-4" /> Cek Status Pengaduan
+              </Link>
+              <div className="mt-4 rounded-xl border border-emerald-200 bg-white p-3">
                 <p className="flex items-center gap-1 text-xs font-semibold text-brand-700">
                   <Sparkles className="h-3.5 w-3.5" /> Analisis AI
                 </p>

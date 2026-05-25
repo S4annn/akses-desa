@@ -1,24 +1,22 @@
 import { ImageIcon } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Modal } from '../../components/common/Modal';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Seo } from '../../components/common/Seo';
 import { SmartImage } from '../../components/common/SmartImage';
+import { useLiveData } from '../../hooks/useLiveData';
 import { listGallery } from '../../services/galleryService';
 import type { GalleryItem } from '../../types/app';
 
 export function GalleryPage() {
-  const [items, setItems] = useState<GalleryItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: items = [], loading } = useLiveData<GalleryItem[]>(
+    () => listGallery(),
+    ['gallery_created', 'gallery_deleted'],
+    []
+  );
   const [cat, setCat] = useState('Semua');
   const [active, setActive] = useState<GalleryItem | null>(null);
-
-  useEffect(() => {
-    listGallery()
-      .then(setItems)
-      .finally(() => setLoading(false));
-  }, []);
 
   const cats = useMemo(() => ['Semua', ...Array.from(new Set(items.map((g) => g.category)))], [items]);
   const filtered = cat === 'Semua' ? items : items.filter((g) => g.category === cat);

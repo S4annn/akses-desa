@@ -1,9 +1,15 @@
-import { Download, Eye, Filter, Search } from 'lucide-react';
+import { Download, Eye, FileDown, Filter, MessageCircle, Search, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { useToast } from '../../hooks/useToast';
-import { listRequestsForAdmin, updateRequestStatus } from '../../services/serviceRequestsService';
+import { subscribeRefresh } from '../../services/notificationBus';
+import {
+  deleteRequest,
+  listRequestsForAdmin,
+  updateRequestStatus,
+} from '../../services/serviceRequestsService';
+import { notifyCitizen } from '../../services/whatsappService';
 import type { ServiceRequest, ServiceStatus } from '../../types/app';
 import { formatDate } from '../../utils/formatDate';
 
@@ -18,12 +24,19 @@ export function ServiceRequestsAdminPage() {
   const { show } = useToast();
 
   useEffect(() => {
-    setLoading(true);
-    listRequestsForAdmin()
-      .then(setItems)
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
+    refresh();
+    const unsub = subscribeRefresh(['request_created', 'request_updated', 'request_deleted'], refresh);
+    return unsub;
   }, []);
+
+  async function refresh() {
+    setLoading(true);
+    try {
+      setItems(await listRequestsForAdmin());
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const filtered = useMemo(() => items.filter((r) => {
     if (statusFilter !== 'Semua' && r.status !== statusFilter) return false;
@@ -39,6 +52,18 @@ export function ServiceRequestsAdminPage() {
       setActive(null);
     } catch (err) {
       show((err as Error).message || 'Gagal update status', 'error');
+    }
+  }
+
+  async function handleDelete(id: string, fromList = false) {
+    if (!confirm('Hapus pengajuan ini? Tindakan tidak dapat dibatalkan.')) return;
+    try {
+      await deleteRequest(id);
+      setItems((arr) => arr.filter((r) => r.id !== id));
+      show('Pengajuan dihapus', 'success');
+      if (!fromList) setActive(null);
+    } catch (err) {
+      show((err as Error).message || 'Gagal hapus', 'error');
     }
   }
 
@@ -93,7 +118,15 @@ export function ServiceRequestsAdminPage() {
                   <td className="px-4 py-3 text-slate-500">{formatDate(r.created_at)}</td>
                   <td className="px-4 py-3"><StatusBadge kind="service" value={r.status} /></td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => setActive(r)} className="btn-ghost"><Eye className="h-4 w-4" /> Detail</button>
+                    <button onClick={() => setActive(r)} className="btn-ghost" aria-label="Detail"><Eye className="h-4 w-4" /></button>
+                    <button
+                      onClick={() => handleDelete(r.id, true)}
+                      className="btn-ghost text-rose-600"
+                      aria-label="Hapus"
+                      title="Hapus"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -106,15 +139,39 @@ export function ServiceRequestsAdminPage() {
       </div>
 
       <Modal open={!!active} onClose={() => setActive(null)} title={active?.service_name} description={active?.tracking_code} size="lg">
-        {active && <Detail r={active} onUpdate={handleUpdate} />}
+        {active && <Detail r={active} onUpdate={handleUpdate} onDelete={handleDelete} />}
       </Modal>
     </div>
   );
 }
 
-function Detail({ r, onUpdate }: { r: ServiceRequest; onUpdate: (id: string, status: ServiceStatus, note?: string) => void }) {
+function Detail({ r, onUpdate, onDelete }: { r: ServiceRequest; onUpdate: (id: string, status: ServiceStatus, note?: string) => void; onDelete: (id: string) => void }) {
   const [status, setStatus] = useState<ServiceStatus>(r.status);
   const [note, setNote] = useState(r.admin_note ?? '');
+  const { show } = useToast();
+
+  function handleNotifyWA() {
+    try {
+      notifyCitizen({ ...r, status, admin_note: note }, note);
+      show('Tab WhatsApp dibuka. Silakan kirim pesan.', 'success');
+    } catch (err) {
+      show((err as Error).message || 'Gagal buka WhatsApp', 'error');
+    }
+  }
+
+  async function handleDownloadPDF() {
+    try {
+      const [{ getActiveVillage: getVillage }, { generateServiceLetterPDF: gen }] = await Promise.all([
+        import('../../services/villageService'),
+        import('../../services/pdfService'),
+      ]);
+      const village = await getVillage();
+      gen({ request: { ...r, status }, village });
+      show('PDF berhasil diunduh', 'success');
+    } catch (err) {
+      show((err as Error).message || 'Gagal generate PDF', 'error');
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -147,7 +204,32 @@ function Detail({ r, onUpdate }: { r: ServiceRequest; onUpdate: (id: string, sta
           <input className="input" value={note} onChange={(e) => setNote(e.target.value)} />
         </div>
       </div>
-      <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleNotifyWA}
+            disabled={!r.phone}
+            className="btn-outline border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+            title={r.phone ? 'Kirim notifikasi via WhatsApp' : 'Nomor WhatsApp tidak tersedia'}
+          >
+            <MessageCircle className="h-4 w-4" /> Notifikasi WA
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadPDF}
+            className="btn-outline"
+          >
+            <FileDown className="h-4 w-4" /> Cetak PDF
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(r.id)}
+            className="btn-outline border-rose-300 text-rose-600 hover:bg-rose-50"
+          >
+            <Trash2 className="h-4 w-4" /> Hapus
+          </button>
+        </div>
         <button onClick={() => onUpdate(r.id, status, note)} className="btn-primary">Simpan Perubahan</button>
       </div>
     </div>

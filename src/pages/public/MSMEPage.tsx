@@ -1,9 +1,11 @@
 import { CheckCircle2, MapPin, Phone, Plus, Search, Store } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { ImageUploader } from '../../components/common/ImageUploader';
 import { Modal } from '../../components/common/Modal';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Seo } from '../../components/common/Seo';
 import { SmartImage } from '../../components/common/SmartImage';
+import { useLiveData } from '../../hooks/useLiveData';
 import { useToast } from '../../hooks/useToast';
 import { listPublicMSMEs, registerMSME } from '../../services/msmeService';
 import type { MSME } from '../../types/app';
@@ -15,12 +17,12 @@ export function MSMEPage() {
   const [cat, setCat] = useState('Semua');
   const [active, setActive] = useState<MSME | null>(null);
   const [register, setRegister] = useState(false);
-  const [msmes, setMsmes] = useState<MSME[]>([]);
+  const { data: msmes = [] } = useLiveData<MSME[]>(
+    () => listPublicMSMEs(),
+    ['msme_created', 'msme_updated', 'msme_deleted'],
+    []
+  );
   const { show } = useToast();
-
-  useEffect(() => {
-    listPublicMSMEs().then(setMsmes).catch(() => setMsmes([]));
-  }, []);
 
   const filtered = useMemo(() => {
     return msmes.filter((m) => {
@@ -114,43 +116,82 @@ export function MSMEPage() {
       </Modal>
 
       <Modal open={register} onClose={() => setRegister(false)} title="Daftarkan UMKM" description="UMKM akan diverifikasi oleh admin desa.">
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const fd = new FormData(e.currentTarget);
+        <RegisterMSMEForm
+          onSubmit={async (input) => {
             try {
-              await registerMSME({
-                business_name: String(fd.get('business_name') ?? ''),
-                owner_name: String(fd.get('owner_name') ?? ''),
-                category: String(fd.get('category') ?? 'Lainnya'),
-                description: String(fd.get('description') ?? ''),
-                phone: String(fd.get('phone') ?? ''),
-                address: String(fd.get('address') ?? ''),
-              });
+              await registerMSME(input);
               setRegister(false);
               show('Pendaftaran UMKM dikirim, menunggu verifikasi admin.', 'success');
             } catch (err) {
               show((err as Error).message || 'Gagal mendaftarkan UMKM', 'error');
             }
           }}
-          className="grid gap-3 sm:grid-cols-2"
-        >
-          <div className="sm:col-span-2"><label className="label">Nama usaha</label><input name="business_name" className="input" required /></div>
-          <div><label className="label">Nama pemilik</label><input name="owner_name" className="input" required /></div>
-          <div>
-            <label className="label">Kategori</label>
-            <select name="category" className="input" required>{categories.filter((c) => c !== 'Semua').map((c) => <option key={c}>{c}</option>)}</select>
-          </div>
-          <div className="sm:col-span-2"><label className="label">Deskripsi</label><textarea name="description" className="input" rows={3} required /></div>
-          <div className="sm:col-span-2"><label className="label">Alamat</label><input name="address" className="input" required /></div>
-          <div><label className="label">Nomor WhatsApp</label><input name="phone" className="input" required /></div>
-          <div><label className="label">Foto produk</label><input className="input" type="file" accept="image/*" /></div>
-          <div className="sm:col-span-2 flex justify-end gap-2">
-            <button type="button" onClick={() => setRegister(false)} className="btn-ghost">Batal</button>
-            <button type="submit" className="btn-primary">Kirim</button>
-          </div>
-        </form>
+          onCancel={() => setRegister(false)}
+        />
       </Modal>
     </div>
+  );
+}
+
+function RegisterMSMEForm({
+  onSubmit,
+  onCancel,
+}: {
+  onSubmit: (input: {
+    business_name: string;
+    owner_name: string;
+    category: string;
+    description: string;
+    address: string;
+    phone: string;
+    image_url?: string;
+  }) => Promise<void>;
+  onCancel: () => void;
+}) {
+  const [imageUrl, setImageUrl] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        setSubmitting(true);
+        try {
+          await onSubmit({
+            business_name: String(fd.get('business_name') ?? ''),
+            owner_name: String(fd.get('owner_name') ?? ''),
+            category: String(fd.get('category') ?? 'Lainnya'),
+            description: String(fd.get('description') ?? ''),
+            phone: String(fd.get('phone') ?? ''),
+            address: String(fd.get('address') ?? ''),
+            image_url: imageUrl || undefined,
+          });
+        } finally {
+          setSubmitting(false);
+        }
+      }}
+      className="grid gap-3 sm:grid-cols-2"
+    >
+      <div className="sm:col-span-2">
+        <label className="label">Foto produk/usaha</label>
+        <ImageUploader value={imageUrl} onChange={setImageUrl} folder="msmes" aspectRatio="4/3" />
+      </div>
+      <div className="sm:col-span-2"><label className="label">Nama usaha</label><input name="business_name" className="input" required /></div>
+      <div><label className="label">Nama pemilik</label><input name="owner_name" className="input" required /></div>
+      <div>
+        <label className="label">Kategori</label>
+        <select name="category" className="input" required>
+          {categories.filter((c) => c !== 'Semua').map((c) => <option key={c}>{c}</option>)}
+        </select>
+      </div>
+      <div className="sm:col-span-2"><label className="label">Deskripsi</label><textarea name="description" className="input" rows={3} required /></div>
+      <div className="sm:col-span-2"><label className="label">Alamat</label><input name="address" className="input" required /></div>
+      <div className="sm:col-span-2"><label className="label">Nomor WhatsApp</label><input name="phone" className="input" required /></div>
+      <div className="sm:col-span-2 flex justify-end gap-2">
+        <button type="button" onClick={onCancel} className="btn-ghost">Batal</button>
+        <button type="submit" disabled={submitting} className="btn-primary">{submitting ? 'Mengirim...' : 'Kirim'}</button>
+      </div>
+    </form>
   );
 }

@@ -1,26 +1,26 @@
 import { Building2, Compass, Goal, MapPin, Sparkles, Users, Wheat } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Seo } from '../../components/common/Seo';
 import { Skeleton } from '../../components/common/Skeleton';
+import { SmartImage } from '../../components/common/SmartImage';
 import { villageStats } from '../../data/dummyData';
+import { useLiveData } from '../../hooks/useLiveData';
 import { listOfficials } from '../../services/villageOfficialsService';
 import { getActiveVillage } from '../../services/villageService';
 import type { Village, VillageOfficial } from '../../types/app';
 
 export function ProfilePage() {
-  const [village, setVillage] = useState<Village | null>(null);
-  const [officials, setOfficials] = useState<VillageOfficial[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    Promise.all([getActiveVillage(), listOfficials()])
-      .then(([v, o]) => {
-        setVillage(v);
-        setOfficials(o);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: village } = useLiveData<Village | null>(
+    () => getActiveVillage(),
+    ['village_updated'],
+    null
+  );
+  const { data: officials = [] } = useLiveData<VillageOfficial[]>(
+    () => listOfficials(),
+    ['village_updated'],
+    []
+  );
+  const loading = !village;
 
   const potencies = [
     { icon: Wheat, label: 'Pertanian organik' },
@@ -93,19 +93,38 @@ export function ProfilePage() {
 
         <section>
           <h2 className="text-xl font-bold text-slate-900">Struktur Pemerintahan Desa</h2>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {officials.map((o) => (
-              <div key={o.id} className="card flex items-center gap-4 p-5">
-                <span className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-brand-600 to-emerald-500 text-white text-lg font-bold">
-                  {o.name.charAt(0)}
-                </span>
-                <div>
-                  <p className="text-sm text-slate-500">{o.position}</p>
-                  <p className="text-base font-semibold text-slate-900">{o.name}</p>
+          <p className="mt-1 text-sm text-slate-500">Perangkat desa yang melayani warga.</p>
+
+          {officials.length === 0 ? (
+            <div className="mt-6 card p-8 text-center text-sm text-slate-500">Belum ada data perangkat desa.</div>
+          ) : (
+            <div className="mt-6 space-y-6">
+              {/* Kepala Desa — featured di atas */}
+              {officials.filter((o) => o.position.toLowerCase().includes('kepala')).map((o) => (
+                <OfficialFeatured key={o.id} official={o} />
+              ))}
+
+              {/* Sekretaris Desa */}
+              {officials.filter((o) => o.position.toLowerCase().includes('sekretaris')).length > 0 && (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {officials
+                    .filter((o) => o.position.toLowerCase().includes('sekretaris'))
+                    .map((o) => <OfficialCard key={o.id} official={o} highlight />)}
                 </div>
+              )}
+
+              {/* Kaur & Kasi */}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {officials
+                  .filter(
+                    (o) =>
+                      !o.position.toLowerCase().includes('kepala') &&
+                      !o.position.toLowerCase().includes('sekretaris')
+                  )
+                  .map((o) => <OfficialCard key={o.id} official={o} />)}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
@@ -143,6 +162,53 @@ export function ProfilePage() {
           </div>
         </section>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Card featured untuk Kepala Desa — center, larger, with gradient frame.
+ */
+function OfficialFeatured({ official }: { official: VillageOfficial }) {
+  return (
+    <div className="card relative overflow-hidden mx-auto max-w-md">
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-brand-700 via-brand-600 to-emerald-500" />
+      <div className="relative px-6 pt-12 pb-6 text-center">
+        <div className="mx-auto h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-soft">
+          {official.photo_url ? (
+            <SmartImage src={official.photo_url} alt={official.name} className="h-full w-full object-cover" />
+          ) : (
+            <div className="grid h-full w-full place-items-center bg-gradient-to-br from-brand-600 to-emerald-500 text-3xl font-bold text-white">
+              {official.name.charAt(0)}
+            </div>
+          )}
+        </div>
+        <p className="mt-4 inline-block rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-700">
+          {official.position}
+        </p>
+        <h3 className="mt-2 text-xl font-bold text-slate-900">{official.name}</h3>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Card biasa untuk perangkat desa lainnya.
+ */
+function OfficialCard({ official, highlight = false }: { official: VillageOfficial; highlight?: boolean }) {
+  return (
+    <div className={`card flex flex-col items-center p-5 text-center transition hover:-translate-y-1 hover:shadow-soft ${highlight ? 'border-brand-200 bg-brand-50/30' : ''}`}>
+      <div className="h-20 w-20 overflow-hidden rounded-full bg-slate-100 ring-2 ring-white shadow-sm">
+        {official.photo_url ? (
+          <SmartImage src={official.photo_url} alt={official.name} className="h-full w-full object-cover" />
+        ) : (
+          <div className="grid h-full w-full place-items-center bg-gradient-to-br from-brand-600 to-emerald-500 text-2xl font-bold text-white">
+            {official.name.charAt(0)}
+          </div>
+        )}
+      </div>
+      <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-brand-700">{official.position}</p>
+      <p className="mt-1 text-sm font-semibold text-slate-900">{official.name}</p>
     </div>
   );
 }

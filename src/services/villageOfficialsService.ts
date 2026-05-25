@@ -6,11 +6,15 @@ const memory: VillageOfficial[] = [...fallback];
 
 export async function listOfficials(): Promise<VillageOfficial[]> {
   if (!supabase) return memory;
+
   const { data, error } = await supabase
     .from('village_officials')
     .select('*')
     .order('order_index', { ascending: true });
-  if (error || !data) return memory;
+
+  // Kalau gagal atau hasilnya kosong (DB belum di-seed), pakai dummy data biar tampilan tidak kosong
+  if (error || !data || data.length === 0) return memory;
+
   return data.map(
     (row): VillageOfficial => ({
       id: String(row.id),

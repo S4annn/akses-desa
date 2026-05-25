@@ -16,6 +16,7 @@ import { StatCard } from '../../components/common/StatCard';
 import { listAgendas } from '../../services/agendaService';
 import { listComplaintsForAdmin } from '../../services/complaintsService';
 import { listAllMSMEs } from '../../services/msmeService';
+import { subscribeRefresh } from '../../services/notificationBus';
 import { listAllPosts } from '../../services/postsService';
 import { listRequestsForAdmin } from '../../services/serviceRequestsService';
 import type { Agenda, Complaint, MSME, Post, ServiceRequest } from '../../types/app';
@@ -30,21 +31,38 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      listRequestsForAdmin(),
-      listComplaintsForAdmin(),
-      listAllMSMEs(),
-      listAllPosts(),
-      listAgendas(),
-    ])
-      .then(([r, c, m, p, a]) => {
+    async function load() {
+      try {
+        const [r, c, m, p, a] = await Promise.all([
+          listRequestsForAdmin(),
+          listComplaintsForAdmin(),
+          listAllMSMEs(),
+          listAllPosts(),
+          listAgendas(),
+        ]);
         setRequests(r);
         setComplaints(c);
         setMsmes(m);
         setPosts(p);
         setAgendas(a);
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    load();
+    // Refresh dashboard saat ada event apapun
+    const unsub = subscribeRefresh(
+      [
+        'request_created', 'request_updated', 'request_deleted',
+        'complaint_created', 'complaint_updated', 'complaint_deleted',
+        'msme_created', 'msme_updated', 'msme_deleted',
+        'post_created', 'post_updated', 'post_deleted',
+        'agenda_created', 'agenda_updated', 'agenda_deleted',
+      ],
+      load
+    );
+    return unsub;
   }, []);
 
   const totalRequests = requests.length;

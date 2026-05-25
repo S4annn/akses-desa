@@ -89,20 +89,36 @@ export async function toggleMSMEVerification(id: string, verified: boolean): Pro
   if (!supabase) {
     const idx = memoryMsmes.findIndex((m) => m.id === id);
     if (idx >= 0) memoryMsmes[idx] = { ...memoryMsmes[idx], is_verified: verified };
+    emit('msme_updated', { id });
     return;
   }
   const { error } = await supabase.from('msmes').update({ is_verified: verified }).eq('id', id);
   if (error) throw new Error(error.message);
+  emit('msme_updated', { id });
 }
 
 export async function deactivateMSME(id: string): Promise<void> {
   if (!supabase) {
     const idx = memoryMsmes.findIndex((m) => m.id === id);
-    if (idx >= 0) memoryMsmes[idx] = { ...memoryMsmes[idx], is_verified: false };
+    if (idx >= 0) memoryMsmes.splice(idx, 1);
+    emit('msme_deleted', { id });
     return;
   }
   const { error } = await supabase.from('msmes').update({ is_active: false }).eq('id', id);
   if (error) throw new Error(error.message);
+  emit('msme_deleted', { id });
+}
+
+export async function deleteMSME(id: string): Promise<void> {
+  if (!supabase) {
+    const idx = memoryMsmes.findIndex((m) => m.id === id);
+    if (idx >= 0) memoryMsmes.splice(idx, 1);
+    emit('msme_deleted', { id });
+    return;
+  }
+  const { error } = await supabase.from('msmes').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  emit('msme_deleted', { id });
 }
 
 function normalize(row: Record<string, unknown>): MSME {
