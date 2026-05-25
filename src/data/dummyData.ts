@@ -15,19 +15,22 @@ import type {
 
 export const village: Village = {
   id: 'village-1',
-  name: 'Desa Sukamaju',
-  district: 'Tanjung Sari',
+  name: 'Desa Condongcatur',
+  district: 'Depok',
   regency: 'Sleman',
   province: 'Daerah Istimewa Yogyakarta',
-  address: 'Jl. Raya Sukamaju No. 12, Sleman, DIY',
-  phone: '(0274) 555-1234',
-  email: 'info@desasukamaju.id',
+  address: 'Jl. Anggajaya I No. 1, Condongcatur, Depok, Sleman, DIY',
+  phone: '(0274) 880-XXX',
+  email: 'info@condongcatur.id',
+  // Koordinat: Desa Condongcatur, Depok, Sleman, DIY
+  latitude: -7.7587,
+  longitude: 110.4011,
   description:
-    'Desa Sukamaju adalah desa berkembang dengan masyarakat aktif, fokus pada pelayanan publik, UMKM, dan inovasi sosial.',
+    'Desa Condongcatur adalah desa berkembang di Kecamatan Depok, Kabupaten Sleman, dengan masyarakat yang aktif, fokus pada pelayanan publik, UMKM, dan inovasi sosial.',
   history:
-    'Desa Sukamaju merupakan desa yang berkembang dari kawasan pertanian dan perdagangan lokal. Dengan masyarakat yang aktif, desa ini terus mendorong inovasi pelayanan publik, pemberdayaan UMKM, dan penguatan kegiatan sosial.',
+    'Desa Condongcatur merupakan desa yang berkembang di kawasan strategis Kecamatan Depok, Sleman. Dengan lokasi yang dekat dengan pusat pendidikan dan ekonomi, Condongcatur terus mendorong inovasi pelayanan publik, pemberdayaan UMKM, dan penguatan kegiatan sosial bersama warganya.',
   vision:
-    'Mewujudkan Desa Sukamaju yang mandiri, transparan, sejahtera, dan berdaya saing melalui pelayanan publik yang humanis dan digital.',
+    'Mewujudkan Desa Condongcatur yang mandiri, transparan, sejahtera, dan berdaya saing melalui pelayanan publik yang humanis dan digital.',
   mission: [
     'Meningkatkan kualitas pelayanan administrasi desa',
     'Mendorong keterbukaan informasi publik',
@@ -93,7 +96,7 @@ export const serviceTypes: ServiceType[] = [
     id: 'st-1',
     name: 'Surat Keterangan Domisili',
     category: 'Kependudukan',
-    description: 'Surat keterangan tempat tinggal warga di Desa Sukamaju.',
+    description: 'Surat keterangan tempat tinggal warga di Desa Condongcatur.',
     requirements: ['Fotokopi KTP', 'Fotokopi KK', 'Surat pengantar RT/RW'],
     processing_time: '1-2 hari kerja',
     fee: 'Gratis',
@@ -427,7 +430,7 @@ export const posts: Post[] = [
     excerpt:
       'Pemerintah desa bersama BPD dan tokoh masyarakat membahas prioritas pembangunan infrastruktur tahun 2026.',
     content:
-      'Pemerintah Desa Sukamaju menggelar musyawarah desa untuk menetapkan prioritas program infrastruktur 2026. Beberapa program yang akan didorong meliputi perbaikan jalan dusun, drainase, dan penerangan jalan umum. Musyawarah dihadiri perangkat desa, BPD, tokoh masyarakat, serta perwakilan karang taruna.\n\nHasil musyawarah akan ditindaklanjuti melalui penyusunan APBDes dan tahapan perencanaan teknis di awal tahun anggaran.',
+      'Pemerintah Desa Condongcatur menggelar musyawarah desa untuk menetapkan prioritas program infrastruktur 2026. Beberapa program yang akan didorong meliputi perbaikan jalan dusun, drainase, dan penerangan jalan umum. Musyawarah dihadiri perangkat desa, BPD, tokoh masyarakat, serta perwakilan karang taruna.\n\nHasil musyawarah akan ditindaklanjuti melalui penyusunan APBDes dan tahapan perencanaan teknis di awal tahun anggaran.',
     image_url:
       'https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&w=1200&q=70',
     author: 'Sekretariat Desa',
@@ -455,7 +458,7 @@ export const posts: Post[] = [
     excerpt:
       'Pelatihan digital marketing diselenggarakan untuk membantu pelaku UMKM lokal naik kelas secara digital.',
     content:
-      'Desa Sukamaju mengadakan pelatihan digital marketing bagi pelaku UMKM lokal. Materi mencakup foto produk, copywriting, dan pemanfaatan media sosial untuk menjangkau pelanggan.\n\nPeserta akan mendapatkan modul dan sesi praktik langsung dari mentor.',
+      'Desa Condongcatur mengadakan pelatihan digital marketing bagi pelaku UMKM lokal. Materi mencakup foto produk, copywriting, dan pemanfaatan media sosial untuk menjangkau pelanggan.\n\nPeserta akan mendapatkan modul dan sesi praktik langsung dari mentor.',
     image_url:
       'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1200&q=70',
     author: 'Kasi Pelayanan',
@@ -511,7 +514,7 @@ export const agendas: Agenda[] = [
     id: 'a-3',
     title: 'Musyawarah Desa',
     description: 'Pembahasan program kerja triwulan.',
-    location: 'Balai Desa Sukamaju',
+    location: 'Balai Desa Condongcatur',
     category: 'Pemerintahan',
     start_date: new Date(Date.now() + 86400000 * 7).toISOString(),
   },

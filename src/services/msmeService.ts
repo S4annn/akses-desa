@@ -116,8 +116,21 @@ export async function deleteMSME(id: string): Promise<void> {
     emit('msme_deleted', { id });
     return;
   }
-  const { error } = await supabase.from('msmes').delete().eq('id', id);
-  if (error) throw new Error(error.message);
+  const { error, count } = await supabase
+    .from('msmes')
+    .delete({ count: 'exact' })
+    .eq('id', id);
+
+  if (error) {
+    console.error('[MSME] Delete failed:', error);
+    throw new Error(error.message || 'Gagal menghapus UMKM');
+  }
+  if (count === 0) {
+    console.warn('[MSME] Delete returned 0 rows — kemungkinan RLS DELETE policy belum di-apply');
+    throw new Error(
+      'UMKM tidak dapat dihapus. Pastikan RLS policy "msmes admin delete" sudah di-apply di Supabase.'
+    );
+  }
   emit('msme_deleted', { id });
 }
 
@@ -134,4 +147,39 @@ function normalize(row: Record<string, unknown>): MSME {
     opening_hours: (row.opening_hours as string) ?? undefined,
     is_verified: Boolean(row.is_verified),
   };
+}
+
+export async function updateMSME(
+  id: string,
+  patch: Partial<{
+    business_name: string;
+    owner_name: string;
+    category: string;
+    description: string;
+    phone: string;
+    address: string;
+    image_url: string;
+    opening_hours: string;
+  }>
+): Promise<void> {
+  if (!supabase) {
+    const idx = memoryMsmes.findIndex((m) => m.id === id);
+    if (idx >= 0) memoryMsmes[idx] = { ...memoryMsmes[idx], ...patch };
+    emit('msme_updated', { id });
+    return;
+  }
+  const { error, count } = await supabase
+    .from('msmes')
+    .update(patch, { count: 'exact' })
+    .eq('id', id);
+  if (error) {
+    console.error('[MSME] Update failed:', error);
+    throw new Error(error.message || 'Gagal update UMKM');
+  }
+  if (count === 0) {
+    throw new Error(
+      'UMKM tidak dapat diupdate. Pastikan RLS policy "msmes admin update" sudah di-apply di Supabase.'
+    );
+  }
+  emit('msme_updated', { id });
 }

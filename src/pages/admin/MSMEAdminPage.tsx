@@ -2,7 +2,7 @@ import { CheckCircle2, Edit, Plus, ShieldCheck, Store, ToggleLeft, ToggleRight, 
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../hooks/useToast';
-import { deleteMSME, listAllMSMEs, registerMSME, toggleMSMEVerification } from '../../services/msmeService';
+import { listAllMSMEs, registerMSME, deleteMSME, toggleMSMEVerification, updateMSME } from '../../services/msmeService';
 import { subscribeRefresh } from '../../services/notificationBus';
 import type { MSME } from '../../types/app';
 
@@ -10,6 +10,7 @@ export function MSMEAdminPage() {
   const [items, setItems] = useState<MSME[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<MSME | null>(null);
   const [filter, setFilter] = useState<'Semua' | 'Verified' | 'Menunggu'>('Semua');
   const { show } = useToast();
 
@@ -164,7 +165,14 @@ export function MSMEAdminPage() {
                           </>
                         )}
                       </button>
-                      <button className="btn-ghost" aria-label="Edit"><Edit className="h-4 w-4" /></button>
+                      <button
+                        onClick={() => setEditing(m)}
+                        className="btn-ghost"
+                        aria-label="Edit UMKM"
+                        title="Edit"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
                       <button
                         onClick={() => handleDelete(m.id)}
                         className="btn-ghost text-rose-600"
@@ -213,6 +221,45 @@ export function MSMEAdminPage() {
           <div><label className="label">No. WhatsApp</label><input name="phone" className="input" /></div>
           <div className="sm:col-span-2 flex justify-end gap-2"><button type="button" onClick={() => setCreating(false)} className="btn-ghost">Batal</button><button className="btn-primary">Simpan</button></div>
         </form>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal open={!!editing} onClose={() => setEditing(null)} title="Edit UMKM" description={editing?.business_name}>
+        {editing && (
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const fd = new FormData(e.currentTarget);
+              try {
+                await updateMSME(editing.id, {
+                  business_name: String(fd.get('business_name') ?? ''),
+                  owner_name: String(fd.get('owner_name') ?? ''),
+                  category: String(fd.get('category') ?? 'Lainnya'),
+                  description: String(fd.get('description') ?? ''),
+                  phone: String(fd.get('phone') ?? ''),
+                  address: String(fd.get('address') ?? ''),
+                });
+                show('UMKM diperbarui', 'success');
+                setEditing(null);
+                refresh();
+              } catch (err) {
+                show((err as Error).message || 'Gagal update', 'error');
+              }
+            }}
+            className="grid gap-3 sm:grid-cols-2"
+          >
+            <div className="sm:col-span-2"><label className="label">Nama Usaha</label><input name="business_name" className="input" defaultValue={editing.business_name} required /></div>
+            <div><label className="label">Pemilik</label><input name="owner_name" className="input" defaultValue={editing.owner_name} required /></div>
+            <div><label className="label">Kategori</label><input name="category" className="input" defaultValue={editing.category} required /></div>
+            <div className="sm:col-span-2"><label className="label">Deskripsi</label><textarea name="description" className="input" rows={2} defaultValue={editing.description} /></div>
+            <div className="sm:col-span-2"><label className="label">Alamat</label><input name="address" className="input" defaultValue={editing.address} required /></div>
+            <div><label className="label">No. WhatsApp</label><input name="phone" className="input" defaultValue={editing.phone} /></div>
+            <div className="sm:col-span-2 flex justify-end gap-2">
+              <button type="button" onClick={() => setEditing(null)} className="btn-ghost">Batal</button>
+              <button type="submit" className="btn-primary">Simpan Perubahan</button>
+            </div>
+          </form>
+        )}
       </Modal>
     </div>
   );

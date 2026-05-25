@@ -148,8 +148,17 @@ export async function deleteRequest(id: string): Promise<void> {
     emit('request_deleted', { id });
     return;
   }
-  const { error } = await supabase.from('service_requests').delete().eq('id', id);
-  if (error) throw new Error(error.message);
+  const { error, count } = await supabase
+    .from('service_requests')
+    .delete({ count: 'exact' })
+    .eq('id', id);
+  if (error) {
+    console.error('[Requests] Delete failed:', error);
+    throw new Error(error.message || 'Gagal menghapus pengajuan');
+  }
+  if (count === 0) {
+    throw new Error('Pengajuan tidak dapat dihapus. Pastikan RLS policy "requests admin delete" sudah di-apply.');
+  }
   emit('request_deleted', { id });
 }
 

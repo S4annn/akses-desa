@@ -1,6 +1,7 @@
 import { Eye, MapPin, MessageCircle, Sparkles, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/common/Modal';
+import { RealMap, complaintMarkerColor, type MapMarker } from '../../components/common/RealMap';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { useToast } from '../../hooks/useToast';
 import {
@@ -56,6 +57,19 @@ export function ComplaintsAdminPage() {
       }),
     [items, search, status, urgency]
   );
+
+  const mapMarkers: MapMarker[] = filtered
+    .filter((c): c is Complaint & { latitude: number; longitude: number } =>
+      c.latitude != null && c.longitude != null
+    )
+    .map((c) => ({
+      id: c.id,
+      lat: c.latitude,
+      lng: c.longitude,
+      color: complaintMarkerColor(c.citizen_urgency, c.category),
+      popupTitle: c.category,
+      popupBody: `${c.tracking_code} · ${c.location}`,
+    }));
 
   async function update(id: string, st: ComplaintStatus, response?: string) {
     try {
@@ -163,10 +177,14 @@ export function ComplaintsAdminPage() {
           <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
             <MapPin className="h-4 w-4 text-rose-500" /> Peta Pengaduan
           </h3>
-          <div className="mt-3 h-72 overflow-hidden rounded-xl bg-gradient-to-br from-brand-50 to-emerald-50">
-            <FakeMap />
+          <div className="mt-3 h-72 overflow-hidden rounded-xl">
+            <RealMap markers={mapMarkers} zoom={14} scrollWheelZoom={false} />
           </div>
-          <p className="mt-3 text-xs text-slate-500">Marker menunjukkan kategori dan lokasi pengaduan.</p>
+          <p className="mt-3 text-xs text-slate-500">
+            {mapMarkers.length === 0
+              ? 'Belum ada pengaduan dengan koordinat. Tambahkan koordinat lokasi saat melapor agar muncul di peta.'
+              : `${mapMarkers.length} pengaduan dengan koordinat lokasi.`}
+          </p>
         </div>
       </div>
 
@@ -271,31 +289,5 @@ function Detail({
         </button>
       </div>
     </div>
-  );
-}
-
-function FakeMap() {
-  return (
-    <svg viewBox="0 0 400 300" className="h-full w-full" aria-hidden="true">
-      <defs>
-        <pattern id="grid2" width="20" height="20" patternUnits="userSpaceOnUse">
-          <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(20,184,166,.18)" strokeWidth="0.7" />
-        </pattern>
-      </defs>
-      <rect width="400" height="300" fill="url(#grid2)" />
-      <path d="M0,160 C80,120 160,200 240,170 C320,140 380,210 400,170" stroke="#0F766E" strokeOpacity=".4" strokeWidth="2" fill="none" />
-      {[
-        { x: 80, y: 90, c: '#F43F5E' },
-        { x: 200, y: 130, c: '#F59E0B' },
-        { x: 300, y: 200, c: '#10B981' },
-        { x: 130, y: 220, c: '#38BDF8' },
-      ].map((m, i) => (
-        <g key={i}>
-          <circle cx={m.x} cy={m.y} r={14} fill={m.c} fillOpacity=".15" />
-          <circle cx={m.x} cy={m.y} r={6} fill={m.c} />
-          <circle cx={m.x} cy={m.y} r={3} fill="#fff" />
-        </g>
-      ))}
-    </svg>
   );
 }

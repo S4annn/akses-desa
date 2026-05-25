@@ -33,6 +33,8 @@ export async function getActiveVillage(): Promise<Village> {
   cachedVillage = {
     ...dummyVillage,
     ...data,
+    latitude: data.latitude != null ? Number(data.latitude) : dummyVillage.latitude,
+    longitude: data.longitude != null ? Number(data.longitude) : dummyVillage.longitude,
     mission: parseMission(data.mission),
   } as Village;
   return cachedVillage;

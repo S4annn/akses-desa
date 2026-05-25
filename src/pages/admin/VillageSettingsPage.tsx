@@ -35,6 +35,8 @@ export function VillageSettingsPage() {
         history: String(fd.get('history') ?? ''),
         vision: String(fd.get('vision') ?? ''),
         mission: String(fd.get('mission') ?? ''),
+        latitude: fd.get('latitude') ? Number(fd.get('latitude')) : null,
+        longitude: fd.get('longitude') ? Number(fd.get('longitude')) : null,
       };
 
       if (supabase) {
@@ -83,6 +85,46 @@ export function VillageSettingsPage() {
           <Field name="phone" label="Telepon" defaultValue={village.phone} />
           <Field name="email" label="Email" defaultValue={village.email} />
           <Field name="address" label="Alamat" wide defaultValue={village.address} />
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-sm font-semibold text-slate-900">📍 Koordinat Desa</p>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Untuk menampilkan peta desa di halaman publik. Cari koordinat di
+            <a
+              href="https://www.google.com/maps"
+              target="_blank"
+              rel="noreferrer"
+              className="ml-1 font-medium text-brand-700 hover:underline"
+            >
+              Google Maps
+            </a>
+            : klik kanan lokasi desa → angka pertama = latitude, kedua = longitude.
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="label">Latitude</label>
+              <input
+                name="latitude"
+                type="number"
+                step="any"
+                className="input"
+                placeholder="-7.7956"
+                defaultValue={village.latitude ?? ''}
+              />
+            </div>
+            <div>
+              <label className="label">Longitude</label>
+              <input
+                name="longitude"
+                type="number"
+                step="any"
+                className="input"
+                placeholder="110.3695"
+                defaultValue={village.longitude ?? ''}
+              />
+            </div>
+          </div>
         </div>
         <div>
           <label className="label">Sejarah</label>

@@ -186,8 +186,17 @@ export async function deleteComplaint(id: string): Promise<void> {
     emit('complaint_deleted', { id });
     return;
   }
-  const { error } = await supabase.from('complaints').delete().eq('id', id);
-  if (error) throw new Error(error.message);
+  const { error, count } = await supabase
+    .from('complaints')
+    .delete({ count: 'exact' })
+    .eq('id', id);
+  if (error) {
+    console.error('[Complaints] Delete failed:', error);
+    throw new Error(error.message || 'Gagal menghapus pengaduan');
+  }
+  if (count === 0) {
+    throw new Error('Pengaduan tidak dapat dihapus. Pastikan RLS policy "complaints admin delete" sudah di-apply.');
+  }
   emit('complaint_deleted', { id });
 }
 

@@ -24,6 +24,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLiveData } from '../../hooks/useLiveData';
+import { RealMap, complaintMarkerColor, type MapMarker } from '../../components/common/RealMap';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { Seo } from '../../components/common/Seo';
 import { SmartImage } from '../../components/common/SmartImage';
@@ -100,10 +101,10 @@ function Hero() {
     ['village_updated'],
     null
   );
-  const villageName = village?.name ?? 'Desa Sukamaju';
+  const villageName = village?.name ?? 'Desa Condongcatur';
   const fullLocation = village
     ? `${village.district}, ${village.regency}, ${village.province}`
-    : 'Tanjung Sari, Sleman, Daerah Istimewa Yogyakarta';
+    : 'Depok, Sleman, Daerah Istimewa Yogyakarta';
 
   return (
     <section className="relative overflow-hidden">
@@ -353,6 +354,30 @@ function ComplaintsPreview() {
     ['complaint_created', 'complaint_updated', 'complaint_deleted'],
     []
   );
+  const { data: village } = useLiveData<Village | null>(
+    () => getActiveVillage(),
+    ['village_updated'],
+    null
+  );
+
+  const villageCenter: [number, number] | undefined =
+    village?.latitude != null && village?.longitude != null
+      ? [village.latitude, village.longitude]
+      : undefined;
+
+  const mapMarkers: MapMarker[] = items
+    .filter((c): c is Complaint & { latitude: number; longitude: number } =>
+      c.latitude != null && c.longitude != null
+    )
+    .map((c) => ({
+      id: c.id,
+      lat: c.latitude,
+      lng: c.longitude,
+      color: complaintMarkerColor(c.citizen_urgency, c.category),
+      popupTitle: c.category,
+      popupBody: c.location,
+    }));
+
   return (
     <section className="container-page py-14">
       <SectionHeader
@@ -363,9 +388,13 @@ function ComplaintsPreview() {
       />
       <div className="mt-8 grid gap-5 lg:grid-cols-5">
         <div className="card relative overflow-hidden p-0 lg:col-span-2">
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-50 via-white to-emerald-50" />
-          <div className="relative h-72 lg:h-full">
-            <FakeMap />
+          <div className="relative h-72 lg:h-full lg:min-h-[360px]">
+            <RealMap
+              center={villageCenter}
+              zoom={14}
+              markers={mapMarkers}
+              scrollWheelZoom={false}
+            />
           </div>
         </div>
         <div className="space-y-3 lg:col-span-3">
@@ -390,44 +419,6 @@ function ComplaintsPreview() {
         </div>
       </div>
     </section>
-  );
-}
-
-function FakeMap() {
-  // Decorative map-like preview using SVG for performance.
-  return (
-    <div className="relative h-full w-full">
-      <svg viewBox="0 0 400 320" className="h-full w-full">
-        <defs>
-          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(20,184,166,.18)" strokeWidth="0.7" />
-          </pattern>
-          <linearGradient id="land" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0" stopColor="#CCFBF1" />
-            <stop offset="1" stopColor="#FFF7ED" />
-          </linearGradient>
-        </defs>
-        <rect width="400" height="320" fill="url(#land)" />
-        <rect width="400" height="320" fill="url(#grid)" />
-        <path d="M0,180 C60,140 120,200 180,170 C240,140 300,210 400,180" stroke="#14B8A6" strokeOpacity=".5" strokeWidth="2" fill="none" />
-        <path d="M0,240 C80,210 160,260 240,230 C320,200 380,250 400,240" stroke="#0F766E" strokeOpacity=".4" strokeWidth="2" fill="none" />
-        {[
-          { x: 90, y: 110, c: '#F43F5E', l: 'Lampu Jalan' },
-          { x: 220, y: 80, c: '#F59E0B', l: 'Jalan Rusak' },
-          { x: 280, y: 180, c: '#10B981', l: 'Drainase' },
-          { x: 150, y: 220, c: '#38BDF8', l: 'Sampah' },
-        ].map((m, i) => (
-          <g key={i}>
-            <circle cx={m.x} cy={m.y} r={14} fill={m.c} fillOpacity=".15" />
-            <circle cx={m.x} cy={m.y} r={6} fill={m.c} />
-            <circle cx={m.x} cy={m.y} r={3} fill="#fff" />
-          </g>
-        ))}
-      </svg>
-      <span className="absolute left-3 top-3 chip border border-white/60 bg-white/80 text-slate-700 backdrop-blur">
-        <MapPin className="h-3 w-3 text-rose-500" /> Peta Pengaduan
-      </span>
-    </div>
   );
 }
 

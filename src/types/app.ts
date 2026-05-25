@@ -39,6 +39,8 @@ export interface Village {
   history: string;
   vision: string;
   mission: string[];
+  latitude?: number;
+  longitude?: number;
   hero_image_url?: string;
   logo_url?: string;
 }

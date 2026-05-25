@@ -7,7 +7,7 @@
  *   3. Untuk balik ke icon SVG default, set `logoImage: null`
  *
  * GANTI NAMA:
- *   - `nameStart` + `nameEnd` digabung jadi tampilan logo (mis. "Akses" + "Desa")
+ *   - `nameStart` + `nameEnd` digabung jadi tampilan logo (mis. "Desa" + "Condongcatur")
  *   - `tagline` muncul di bawah nama (kecil)
  */
 export const brand = {
@@ -24,9 +24,9 @@ export const brand = {
 
   // Nama yang ditampilkan di header (fallback kalau Supabase belum siap)
   // Logo component akan otomatis fetch nama desa dari Supabase saat mount.
-  name: 'Desa Sukamaju',
+  name: 'Desa Condongcatur',
   nameStart: 'Desa ',
-  nameEnd: 'Sukamaju',
+  nameEnd: 'Condongcatur',
 
   // Tagline kecil di bawah nama logo
   tagline: 'Portal Digital Desa',
