@@ -1,11 +1,12 @@
 import { CheckCircle2, FileText, HandHeart, Info, Send } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { EmptyState } from '../../components/common/EmptyState';
 import { Modal } from '../../components/common/Modal';
 import { PageHeader } from '../../components/common/PageHeader';
-import { socialAids } from '../../data/dummyData';
+import { Seo } from '../../components/common/Seo';
 import { useToast } from '../../hooks/useToast';
+import { listActiveAids, submitAidApplication } from '../../services/socialAidService';
 import type { SocialAid } from '../../types/app';
-import { generateTrackingCode } from '../../utils/generateTrackingCode';
 import { maskName } from '../../utils/maskSensitiveData';
 
 const samplePublicRecipients = [
@@ -17,10 +18,19 @@ const samplePublicRecipients = [
 export function SocialAidPage() {
   const [active, setActive] = useState<SocialAid | null>(null);
   const [submitted, setSubmitted] = useState<string | null>(null);
+  const [aids, setAids] = useState<SocialAid[]>([]);
+  const [loading, setLoading] = useState(true);
   const { show } = useToast();
+
+  useEffect(() => {
+    listActiveAids()
+      .then(setAids)
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div>
+      <Seo title="Bantuan Sosial" description="Program bantuan sosial desa: sembako, pendidikan, kesehatan, lansia, disabilitas, modal UMKM." />
       <PageHeader
         eyebrow="Bantuan Sosial"
         title="Program Bantuan Sosial Desa"
@@ -28,8 +38,13 @@ export function SocialAidPage() {
       />
       <div className="container-page py-10 space-y-10">
         <section>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {socialAids.map((s) => (
+          {loading && <div className="card p-8 text-center text-sm text-slate-500">Memuat program bantuan...</div>}
+          {!loading && aids.length === 0 && (
+            <EmptyState title="Belum ada program aktif" description="Program bantuan sosial akan tampil di sini setelah dibuka oleh admin desa." icon={<HandHeart className="h-7 w-7" />} />
+          )}
+          {!loading && aids.length > 0 && (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {aids.map((s) => (
               <div key={s.id} className="card flex flex-col p-5 transition hover:-translate-y-1 hover:shadow-soft">
                 <div className="flex items-start justify-between">
                   <span className="grid h-11 w-11 place-items-center rounded-xl bg-amber-50 text-amber-600">
@@ -55,7 +70,8 @@ export function SocialAidPage() {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          )}
         </section>
 
         <section className="card p-6">
@@ -96,22 +112,37 @@ export function SocialAidPage() {
               </div>
             </div>
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                const code = generateTrackingCode('BNS');
-                setSubmitted(code);
-                show('Usulan bantuan dikirim', 'success');
+                const fd = new FormData(e.currentTarget);
+                try {
+                  const r = await submitAidApplication({
+                    social_aid_id: active.id,
+                    citizen_name: String(fd.get('name') ?? ''),
+                    nik: String(fd.get('nik') ?? ''),
+                    kk_number: String(fd.get('kk') ?? ''),
+                    address: String(fd.get('address') ?? ''),
+                    phone: String(fd.get('phone') ?? ''),
+                    family_condition: String(fd.get('condition') ?? ''),
+                    estimated_income: Number(fd.get('income') ?? 0),
+                    dependents_count: Number(fd.get('dependents') ?? 0),
+                  });
+                  setSubmitted(r.tracking_code);
+                  show('Usulan bantuan dikirim', 'success');
+                } catch (err) {
+                  show((err as Error).message || 'Gagal kirim usulan', 'error');
+                }
               }}
               className="grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2"
             >
-              <Field label="Nama lengkap"><input className="input" required /></Field>
-              <Field label="NIK"><input className="input" maxLength={16} required /></Field>
-              <Field label="Nomor KK"><input className="input" maxLength={16} required /></Field>
-              <Field label="Nomor WhatsApp"><input className="input" required /></Field>
-              <Field label="Alamat" wide><input className="input" required /></Field>
-              <Field label="Kondisi keluarga" wide><textarea className="input" rows={2} required /></Field>
-              <Field label="Penghasilan perkiraan/bulan"><input className="input" type="number" required /></Field>
-              <Field label="Tanggungan keluarga"><input className="input" type="number" required /></Field>
+              <Field label="Nama lengkap"><input name="name" className="input" required /></Field>
+              <Field label="NIK"><input name="nik" className="input" maxLength={16} required /></Field>
+              <Field label="Nomor KK"><input name="kk" className="input" maxLength={16} required /></Field>
+              <Field label="Nomor WhatsApp"><input name="phone" className="input" required /></Field>
+              <Field label="Alamat" wide><input name="address" className="input" required /></Field>
+              <Field label="Kondisi keluarga" wide><textarea name="condition" className="input" rows={2} required /></Field>
+              <Field label="Penghasilan perkiraan/bulan"><input name="income" className="input" type="number" required /></Field>
+              <Field label="Tanggungan keluarga"><input name="dependents" className="input" type="number" required /></Field>
               <div className="sm:col-span-2 flex justify-end gap-2">
                 <button type="button" onClick={() => setActive(null)} className="btn-ghost">Batal</button>
                 <button type="submit" className="btn-primary">Kirim Usulan</button>

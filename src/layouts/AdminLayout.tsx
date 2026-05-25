@@ -1,5 +1,4 @@
 import {
-  Bell,
   BookOpen,
   Calendar,
   ChevronDown,
@@ -22,6 +21,7 @@ import {
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Logo } from '../components/common/Logo';
+import { NotificationDropdown } from '../components/admin/NotificationDropdown';
 import { useAuth } from '../hooks/useAuth';
 
 const menu = [
@@ -121,10 +121,7 @@ export function AdminLayout() {
               />
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <button className="relative grid h-10 w-10 place-items-center rounded-xl border border-slate-200 hover:bg-slate-100">
-                <Bell className="h-4 w-4" />
-                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500" />
-              </button>
+              <NotificationDropdown />
               <div className="hidden items-center gap-3 rounded-xl border border-slate-200 px-3 py-1.5 sm:flex">
                 <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-brand-700 to-emerald-500 text-xs font-semibold text-white">
                   {user?.full_name?.[0] ?? 'A'}

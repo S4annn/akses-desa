@@ -1,20 +1,29 @@
 import { Download, Eye, Filter, Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { sampleRequests, serviceTypes } from '../../data/dummyData';
 import { useToast } from '../../hooks/useToast';
+import { listRequestsForAdmin, updateRequestStatus } from '../../services/serviceRequestsService';
 import type { ServiceRequest, ServiceStatus } from '../../types/app';
 import { formatDate } from '../../utils/formatDate';
 
 const allStatus: ServiceStatus[] = ['Diajukan', 'Diverifikasi', 'Butuh Perbaikan', 'Diproses', 'Siap Diambil', 'Selesai', 'Ditolak'];
 
 export function ServiceRequestsAdminPage() {
-  const [items, setItems] = useState(sampleRequests);
+  const [items, setItems] = useState<ServiceRequest[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<ServiceStatus | 'Semua'>('Semua');
   const [active, setActive] = useState<ServiceRequest | null>(null);
   const { show } = useToast();
+
+  useEffect(() => {
+    setLoading(true);
+    listRequestsForAdmin()
+      .then(setItems)
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = useMemo(() => items.filter((r) => {
     if (statusFilter !== 'Semua' && r.status !== statusFilter) return false;
@@ -22,10 +31,15 @@ export function ServiceRequestsAdminPage() {
     return true;
   }), [items, search, statusFilter]);
 
-  function updateStatus(id: string, status: ServiceStatus, note?: string) {
-    setItems((arr) => arr.map((r) => (r.id === id ? { ...r, status, admin_note: note ?? r.admin_note } : r)));
-    show('Status diperbarui', 'success');
-    setActive(null);
+  async function handleUpdate(id: string, status: ServiceStatus, note?: string) {
+    try {
+      await updateRequestStatus(id, status, note);
+      setItems((arr) => arr.map((r) => (r.id === id ? { ...r, status, admin_note: note ?? r.admin_note } : r)));
+      show('Status diperbarui', 'success');
+      setActive(null);
+    } catch (err) {
+      show((err as Error).message || 'Gagal update status', 'error');
+    }
   }
 
   return (
@@ -68,7 +82,10 @@ export function ServiceRequestsAdminPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filtered.map((r) => (
+              {loading && (
+                <tr><td colSpan={6} className="px-4 py-12 text-center text-sm text-slate-500">Memuat data...</td></tr>
+              )}
+              {!loading && filtered.map((r) => (
                 <tr key={r.id} className="hover:bg-slate-50/60">
                   <td className="px-4 py-3 font-mono text-xs font-semibold text-brand-700">{r.tracking_code}</td>
                   <td className="px-4 py-3 font-medium text-slate-800">{r.service_name}</td>
@@ -80,7 +97,7 @@ export function ServiceRequestsAdminPage() {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {!loading && filtered.length === 0 && (
                 <tr><td colSpan={6} className="px-4 py-12 text-center text-sm text-slate-500">Tidak ada data sesuai filter.</td></tr>
               )}
             </tbody>
@@ -89,7 +106,7 @@ export function ServiceRequestsAdminPage() {
       </div>
 
       <Modal open={!!active} onClose={() => setActive(null)} title={active?.service_name} description={active?.tracking_code} size="lg">
-        {active && <Detail r={active} onUpdate={updateStatus} />}
+        {active && <Detail r={active} onUpdate={handleUpdate} />}
       </Modal>
     </div>
   );
@@ -98,7 +115,6 @@ export function ServiceRequestsAdminPage() {
 function Detail({ r, onUpdate }: { r: ServiceRequest; onUpdate: (id: string, status: ServiceStatus, note?: string) => void }) {
   const [status, setStatus] = useState<ServiceStatus>(r.status);
   const [note, setNote] = useState(r.admin_note ?? '');
-  const svc = serviceTypes.find((s) => s.id === r.service_type_id);
 
   return (
     <div className="space-y-4">
@@ -107,7 +123,7 @@ function Detail({ r, onUpdate }: { r: ServiceRequest; onUpdate: (id: string, sta
         <Info label="Tanggal Pengajuan" value={formatDate(r.created_at)} />
         <Info label="Keperluan" value={r.purpose} wide />
         <Info label="No. WhatsApp" value={r.phone} />
-        <Info label="Kategori" value={svc?.category ?? '-'} />
+        <Info label="Layanan" value={r.service_name ?? '-'} />
       </div>
       <div className="rounded-xl border border-slate-100 p-3">
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Dokumen Pendukung</p>

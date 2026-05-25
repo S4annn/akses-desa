@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
-import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
+import { isSupabaseConfigured, supabase } from '../services/supabaseClient';
 
-interface DemoUser {
+interface AppUser {
   id: string;
   email: string;
   full_name: string;
   role: 'admin' | 'head' | 'staff';
+  village_id?: string;
 }
 
-const DEMO_USER: DemoUser = {
+const DEMO_USER: AppUser = {
   id: 'demo-admin-1',
   email: 'admin@aksesdesa.id',
   full_name: 'Admin AksesDesa',
@@ -17,11 +18,28 @@ const DEMO_USER: DemoUser = {
 const DEMO_PASSWORD = 'aksesdesa123';
 const STORAGE_KEY = 'aksesdesa.auth';
 
+async function fetchProfile(userId: string, email: string): Promise<AppUser | null> {
+  if (!supabase) return null;
+  const { data } = await supabase
+    .from('profiles')
+    .select('id, full_name, email, role, village_id')
+    .eq('id', userId)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    id: String(data.id),
+    email: (data.email as string) ?? email,
+    full_name: (data.full_name as string) ?? 'Admin Desa',
+    role: (data.role as AppUser['role']) ?? 'staff',
+    village_id: (data.village_id as string) ?? undefined,
+  };
+}
+
 export function useAuth() {
-  const [user, setUser] = useState<DemoUser | null>(() => {
+  const [user, setUser] = useState<AppUser | null>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? (JSON.parse(raw) as DemoUser) : null;
+      return raw ? (JSON.parse(raw) as AppUser) : null;
     } catch {
       return null;
     }
@@ -30,17 +48,33 @@ export function useAuth() {
 
   useEffect(() => {
     if (!supabase) return;
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        const u: DemoUser = {
+
+    // Sync existing session on mount
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session?.user) {
+        const u = await fetchProfile(data.session.user.id, data.session.user.email ?? '');
+        if (u) {
+          setUser(u);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
+        }
+      }
+    });
+
+    const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!session?.user) {
+        setUser(null);
+        localStorage.removeItem(STORAGE_KEY);
+        return;
+      }
+      const u =
+        (await fetchProfile(session.user.id, session.user.email ?? '')) ?? {
           id: session.user.id,
           email: session.user.email ?? '',
           full_name: (session.user.user_metadata?.full_name as string) ?? 'Admin Desa',
-          role: 'admin',
+          role: 'admin' as const,
         };
-        setUser(u);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
-      }
+      setUser(u);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
     });
     return () => data.subscription.unsubscribe();
   }, []);
@@ -52,12 +86,13 @@ export function useAuth() {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         if (data.user) {
-          const u: DemoUser = {
-            id: data.user.id,
-            email: data.user.email ?? email,
-            full_name: (data.user.user_metadata?.full_name as string) ?? 'Admin Desa',
-            role: 'admin',
-          };
+          const u =
+            (await fetchProfile(data.user.id, data.user.email ?? email)) ?? {
+              id: data.user.id,
+              email: data.user.email ?? email,
+              full_name: (data.user.user_metadata?.full_name as string) ?? 'Admin Desa',
+              role: 'admin' as const,
+            };
           setUser(u);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
           return u;

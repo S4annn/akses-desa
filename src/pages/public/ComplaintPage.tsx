@@ -1,14 +1,12 @@
 import { CheckCircle2, Image as ImageIcon, MapPin, MessageSquareWarning, ShieldOff, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { PageHeader } from '../../components/common/PageHeader';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { sampleComplaints } from '../../data/dummyData';
 import { useToast } from '../../hooks/useToast';
-import { classifyComplaint, type ComplaintClassification } from '../../services/geminiService';
-import type { Urgency } from '../../types/app';
+import { createComplaint, listPublicComplaints } from '../../services/complaintsService';
+import type { Complaint, Urgency } from '../../types/app';
 import { formatDate } from '../../utils/formatDate';
-import { generateTrackingCode } from '../../utils/generateTrackingCode';
 
 const categories = [
   'Jalan rusak',
@@ -38,14 +36,30 @@ export function ComplaintPage() {
   });
   const isAnon = watch('is_anonymous');
   const { show } = useToast();
-  const [result, setResult] = useState<{ code: string; ai: ComplaintClassification } | null>(null);
+  const [result, setResult] = useState<{ code: string; complaint: Complaint } | null>(null);
+  const [publicList, setPublicList] = useState<Complaint[]>([]);
+
+  useEffect(() => {
+    listPublicComplaints(8).then(setPublicList).catch(() => setPublicList([]));
+  }, [result]);
 
   async function onSubmit(data: FormData) {
-    const ai = await classifyComplaint(data.description, data.category, data.location);
-    const code = generateTrackingCode('ADU');
-    setResult({ code, ai });
-    show('Pengaduan terkirim, terima kasih!', 'success');
-    reset({ is_anonymous: false, category: 'Jalan rusak', urgency: 'sedang' });
+    try {
+      const r = await createComplaint({
+        citizen_name: data.is_anonymous ? undefined : data.name,
+        phone: data.is_anonymous ? undefined : data.phone,
+        is_anonymous: data.is_anonymous,
+        category: data.category,
+        location: data.location,
+        description: data.description,
+        citizen_urgency: data.urgency,
+      });
+      setResult({ code: r.tracking_code, complaint: r.complaint });
+      show('Pengaduan terkirim, terima kasih!', 'success');
+      reset({ is_anonymous: false, category: 'Jalan rusak', urgency: 'sedang' });
+    } catch (err) {
+      show((err as Error).message || 'Gagal mengirim pengaduan, coba lagi.', 'error');
+    }
   }
 
   return (
@@ -129,10 +143,10 @@ export function ComplaintPage() {
                 <p className="flex items-center gap-1 text-xs font-semibold text-brand-700">
                   <Sparkles className="h-3.5 w-3.5" /> Analisis AI
                 </p>
-                <p className="mt-1 text-sm text-slate-700"><b>Kategori:</b> {result.ai.category}</p>
-                <p className="text-sm text-slate-700"><b>Urgensi:</b> <StatusBadge kind="urgency" value={result.ai.urgency} /></p>
-                <p className="mt-1 text-sm text-slate-700"><b>Ringkasan:</b> {result.ai.summary}</p>
-                <p className="text-sm text-slate-700"><b>Rekomendasi:</b> {result.ai.recommended_action}</p>
+                <p className="mt-1 text-sm text-slate-700"><b>Kategori:</b> {result.complaint.ai_category}</p>
+                <p className="text-sm text-slate-700"><b>Urgensi:</b> <StatusBadge kind="urgency" value={result.complaint.ai_urgency ?? 'sedang'} /></p>
+                <p className="mt-1 text-sm text-slate-700"><b>Ringkasan:</b> {result.complaint.ai_summary}</p>
+                <p className="text-sm text-slate-700"><b>Rekomendasi:</b> {result.complaint.ai_recommended_action}</p>
               </div>
             </div>
           )}
@@ -141,7 +155,10 @@ export function ComplaintPage() {
             <h3 className="text-base font-semibold text-slate-900">Pengaduan terbaru (publik)</h3>
             <p className="text-xs text-slate-500">Identitas pelapor disembunyikan untuk privasi.</p>
             <ul className="mt-4 space-y-3">
-              {sampleComplaints.map((c) => (
+              {publicList.length === 0 && (
+                <li className="text-sm text-slate-500">Belum ada pengaduan publik.</li>
+              )}
+              {publicList.map((c) => (
                 <li key={c.id} className="rounded-xl border border-slate-100 p-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-semibold text-slate-900">{c.category}</p>

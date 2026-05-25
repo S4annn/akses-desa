@@ -1,14 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckCircle2, Copy, FileText, Home, Save, Upload } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import { PageHeader } from '../../components/common/PageHeader';
-import { serviceTypes } from '../../data/dummyData';
 import { useFormAutosave } from '../../hooks/useFormAutosave';
 import { useToast } from '../../hooks/useToast';
-import { generateTrackingCode } from '../../utils/generateTrackingCode';
+import {
+  createServiceRequest,
+  listServiceTypes,
+} from '../../services/serviceRequestsService';
+import type { ServiceType } from '../../types/app';
 
 const schema = z.object({
   service_type_id: z.string().min(1, 'Jenis layanan wajib dipilih'),
@@ -35,6 +38,13 @@ export function ServiceRequestPage() {
   const presetService = params.get('service') ?? '';
   const { show } = useToast();
   const [trackingCode, setTrackingCode] = useState<string | null>(null);
+  const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
+
+  useEffect(() => {
+    listServiceTypes()
+      .then(setServiceTypes)
+      .catch(() => setServiceTypes([]));
+  }, []);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -49,14 +59,17 @@ export function ServiceRequestPage() {
 
   const autosave = useFormAutosave('service-request', form);
 
-  async function onSubmit() {
-    await new Promise((r) => setTimeout(r, 600));
-    const code = generateTrackingCode('ADS');
-    setTrackingCode(code);
-    autosave.clear();
-    show('Pengajuan berhasil dikirim', 'success');
-    reset();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  async function onSubmit(data: FormData) {
+    try {
+      const { tracking_code } = await createServiceRequest(data);
+      setTrackingCode(tracking_code);
+      autosave.clear();
+      show('Pengajuan berhasil dikirim', 'success');
+      reset();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      show((err as Error).message || 'Gagal mengirim pengajuan, silakan coba lagi.', 'error');
+    }
   }
 
   if (trackingCode) {

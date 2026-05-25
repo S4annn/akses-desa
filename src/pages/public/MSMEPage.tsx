@@ -1,11 +1,11 @@
 import { CheckCircle2, MapPin, Phone, Plus, Search, Store } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Seo } from '../../components/common/Seo';
 import { SmartImage } from '../../components/common/SmartImage';
-import { msmes } from '../../data/dummyData';
 import { useToast } from '../../hooks/useToast';
+import { listPublicMSMEs, registerMSME } from '../../services/msmeService';
 import type { MSME } from '../../types/app';
 
 const categories = ['Semua', 'Makanan & Minuman', 'Kerajinan', 'Pertanian', 'Jasa', 'Toko Kelontong', 'Fashion', 'Wisata', 'Lainnya'];
@@ -15,7 +15,12 @@ export function MSMEPage() {
   const [cat, setCat] = useState('Semua');
   const [active, setActive] = useState<MSME | null>(null);
   const [register, setRegister] = useState(false);
+  const [msmes, setMsmes] = useState<MSME[]>([]);
   const { show } = useToast();
+
+  useEffect(() => {
+    listPublicMSMEs().then(setMsmes).catch(() => setMsmes([]));
+  }, []);
 
   const filtered = useMemo(() => {
     return msmes.filter((m) => {
@@ -110,22 +115,35 @@ export function MSMEPage() {
 
       <Modal open={register} onClose={() => setRegister(false)} title="Daftarkan UMKM" description="UMKM akan diverifikasi oleh admin desa.">
         <form
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            setRegister(false);
-            show('Pendaftaran UMKM dikirim, menunggu verifikasi.', 'success');
+            const fd = new FormData(e.currentTarget);
+            try {
+              await registerMSME({
+                business_name: String(fd.get('business_name') ?? ''),
+                owner_name: String(fd.get('owner_name') ?? ''),
+                category: String(fd.get('category') ?? 'Lainnya'),
+                description: String(fd.get('description') ?? ''),
+                phone: String(fd.get('phone') ?? ''),
+                address: String(fd.get('address') ?? ''),
+              });
+              setRegister(false);
+              show('Pendaftaran UMKM dikirim, menunggu verifikasi admin.', 'success');
+            } catch (err) {
+              show((err as Error).message || 'Gagal mendaftarkan UMKM', 'error');
+            }
           }}
           className="grid gap-3 sm:grid-cols-2"
         >
-          <div className="sm:col-span-2"><label className="label">Nama usaha</label><input className="input" required /></div>
-          <div><label className="label">Nama pemilik</label><input className="input" required /></div>
+          <div className="sm:col-span-2"><label className="label">Nama usaha</label><input name="business_name" className="input" required /></div>
+          <div><label className="label">Nama pemilik</label><input name="owner_name" className="input" required /></div>
           <div>
             <label className="label">Kategori</label>
-            <select className="input" required>{categories.filter((c) => c !== 'Semua').map((c) => <option key={c}>{c}</option>)}</select>
+            <select name="category" className="input" required>{categories.filter((c) => c !== 'Semua').map((c) => <option key={c}>{c}</option>)}</select>
           </div>
-          <div className="sm:col-span-2"><label className="label">Deskripsi</label><textarea className="input" rows={3} required /></div>
-          <div className="sm:col-span-2"><label className="label">Alamat</label><input className="input" required /></div>
-          <div><label className="label">Nomor WhatsApp</label><input className="input" required /></div>
+          <div className="sm:col-span-2"><label className="label">Deskripsi</label><textarea name="description" className="input" rows={3} required /></div>
+          <div className="sm:col-span-2"><label className="label">Alamat</label><input name="address" className="input" required /></div>
+          <div><label className="label">Nomor WhatsApp</label><input name="phone" className="input" required /></div>
           <div><label className="label">Foto produk</label><input className="input" type="file" accept="image/*" /></div>
           <div className="sm:col-span-2 flex justify-end gap-2">
             <button type="button" onClick={() => setRegister(false)} className="btn-ghost">Batal</button>

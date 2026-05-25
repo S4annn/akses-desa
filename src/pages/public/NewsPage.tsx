@@ -1,9 +1,12 @@
 import { Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { EmptyState } from '../../components/common/EmptyState';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Seo } from '../../components/common/Seo';
-import { posts } from '../../data/dummyData';
+import { SmartImage } from '../../components/common/SmartImage';
+import { listPublicPosts } from '../../services/postsService';
+import type { Post } from '../../types/app';
 import { formatDate } from '../../utils/formatDate';
 
 const filters = ['Semua', 'berita', 'pengumuman', 'kegiatan', 'layanan'] as const;
@@ -11,6 +14,14 @@ const filters = ['Semua', 'berita', 'pengumuman', 'kegiatan', 'layanan'] as cons
 export function NewsPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<(typeof filters)[number]>('Semua');
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    listPublicPosts()
+      .then(setPosts)
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = useMemo(() => {
     return posts.filter((p) => {
@@ -40,11 +51,17 @@ export function NewsPage() {
           </div>
         </div>
 
+        {!loading && filtered.length === 0 && (
+          <div className="mt-8">
+            <EmptyState title="Belum ada artikel" description="Berita dan pengumuman akan muncul di sini setelah diterbitkan oleh admin desa." />
+          </div>
+        )}
+
         {featured && (
           <Link to={`/berita/${featured.slug}`} className="card group mt-8 grid overflow-hidden lg:grid-cols-2">
             <div className="h-72 overflow-hidden bg-slate-100">
               {featured.image_url && (
-                <img src={featured.image_url} alt={featured.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                <SmartImage src={featured.image_url} alt={featured.title} className="h-full w-full object-cover transition group-hover:scale-105" />
               )}
             </div>
             <div className="p-6 sm:p-8">
@@ -60,7 +77,7 @@ export function NewsPage() {
           {rest.map((p) => (
             <Link key={p.id} to={`/berita/${p.slug}`} className="card group overflow-hidden transition hover:-translate-y-1 hover:shadow-soft">
               <div className="relative h-40 overflow-hidden bg-slate-100">
-                {p.image_url && <img src={p.image_url} alt={p.title} className="h-full w-full object-cover transition group-hover:scale-105" />}
+                {p.image_url && <SmartImage src={p.image_url} alt={p.title} className="h-full w-full object-cover transition group-hover:scale-105" />}
                 <span className="chip absolute left-3 top-3 border border-white/40 bg-white/85 capitalize text-brand-700 backdrop-blur">{p.type}</span>
               </div>
               <div className="p-4">

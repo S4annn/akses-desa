@@ -1,48 +1,113 @@
 import { Building2, Save } from 'lucide-react';
-import { village } from '../../data/dummyData';
+import { useEffect, useState } from 'react';
+import { Skeleton } from '../../components/common/Skeleton';
 import { useToast } from '../../hooks/useToast';
+import { supabase } from '../../services/supabaseClient';
+import { clearVillageCache, getActiveVillage } from '../../services/villageService';
+import type { Village } from '../../types/app';
 
 export function VillageSettingsPage() {
   const { show } = useToast();
+  const [village, setVillage] = useState<Village | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    getActiveVillage()
+      .then(setVillage)
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!village) return;
+    setSaving(true);
+    try {
+      const fd = new FormData(e.currentTarget);
+      const patch = {
+        name: String(fd.get('name') ?? ''),
+        district: String(fd.get('district') ?? ''),
+        regency: String(fd.get('regency') ?? ''),
+        province: String(fd.get('province') ?? ''),
+        phone: String(fd.get('phone') ?? ''),
+        email: String(fd.get('email') ?? ''),
+        address: String(fd.get('address') ?? ''),
+        history: String(fd.get('history') ?? ''),
+        vision: String(fd.get('vision') ?? ''),
+        mission: String(fd.get('mission') ?? ''),
+      };
+
+      if (supabase) {
+        const { error } = await supabase.from('villages').update(patch).eq('id', village.id);
+        if (error) throw error;
+      }
+      clearVillageCache();
+      show('Pengaturan disimpan', 'success');
+    } catch (err) {
+      show((err as Error).message || 'Gagal simpan', 'error');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading || !village) {
+    return (
+      <div className="space-y-5">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-96" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
-      <div><h1 className="text-2xl font-bold text-slate-900">Pengaturan Desa</h1><p className="text-sm text-slate-500">Kelola identitas dan informasi dasar desa.</p></div>
-      <form
-        onSubmit={(e) => { e.preventDefault(); show('Pengaturan disimpan', 'success'); }}
-        className="card space-y-4 p-6"
-      >
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">Pengaturan Desa</h1>
+        <p className="text-sm text-slate-500">Kelola identitas dan informasi dasar desa.</p>
+      </div>
+      <form onSubmit={handleSubmit} className="card space-y-4 p-6">
         <div className="flex items-center gap-3">
-          <span className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-brand-700 to-emerald-500 text-white"><Building2 className="h-5 w-5" /></span>
-          <div><p className="text-sm font-semibold text-slate-900">Identitas Desa</p><p className="text-xs text-slate-500">Tampil di seluruh halaman publik.</p></div>
+          <span className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-brand-700 to-emerald-500 text-white">
+            <Building2 className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Identitas Desa</p>
+            <p className="text-xs text-slate-500">Tampil di seluruh halaman publik.</p>
+          </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Nama Desa" defaultValue={village.name} />
-          <Field label="Kecamatan" defaultValue={village.district} />
-          <Field label="Kabupaten" defaultValue={village.regency} />
-          <Field label="Provinsi" defaultValue={village.province} />
-          <Field label="Telepon" defaultValue={village.phone} />
-          <Field label="Email" defaultValue={village.email} />
-          <Field label="Alamat" wide defaultValue={village.address} />
+          <Field name="name" label="Nama Desa" defaultValue={village.name} />
+          <Field name="district" label="Kecamatan" defaultValue={village.district} />
+          <Field name="regency" label="Kabupaten" defaultValue={village.regency} />
+          <Field name="province" label="Provinsi" defaultValue={village.province} />
+          <Field name="phone" label="Telepon" defaultValue={village.phone} />
+          <Field name="email" label="Email" defaultValue={village.email} />
+          <Field name="address" label="Alamat" wide defaultValue={village.address} />
         </div>
         <div>
           <label className="label">Sejarah</label>
-          <textarea className="input" rows={4} defaultValue={village.history} />
+          <textarea name="history" className="input" rows={4} defaultValue={village.history} />
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <div><label className="label">Visi</label><textarea className="input" rows={3} defaultValue={village.vision} /></div>
-          <div><label className="label">Misi</label><textarea className="input" rows={5} defaultValue={village.mission.join('\n')} /></div>
+          <div><label className="label">Visi</label><textarea name="vision" className="input" rows={3} defaultValue={village.vision} /></div>
+          <div>
+            <label className="label">Misi (1 per baris)</label>
+            <textarea name="mission" className="input" rows={5} defaultValue={Array.isArray(village.mission) ? village.mission.join('\n') : (village.mission as unknown as string)} />
+          </div>
         </div>
-        <div className="flex justify-end"><button className="btn-primary"><Save className="h-4 w-4" /> Simpan Perubahan</button></div>
+        <div className="flex justify-end">
+          <button disabled={saving} className="btn-primary"><Save className="h-4 w-4" /> {saving ? 'Menyimpan...' : 'Simpan Perubahan'}</button>
+        </div>
       </form>
     </div>
   );
 }
 
-function Field({ label, defaultValue, wide }: { label: string; defaultValue?: string; wide?: boolean }) {
+function Field({ name, label, defaultValue, wide }: { name: string; label: string; defaultValue?: string; wide?: boolean }) {
   return (
     <div className={wide ? 'sm:col-span-2' : ''}>
       <label className="label">{label}</label>
-      <input className="input" defaultValue={defaultValue} />
+      <input name={name} className="input" defaultValue={defaultValue} />
     </div>
   );
 }

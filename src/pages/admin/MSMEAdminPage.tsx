@@ -1,24 +1,55 @@
-import { CheckCircle2, Edit, Plus, Store, ToggleLeft, ToggleRight, XCircle } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { CheckCircle2, Edit, Plus, ShieldCheck, Store, ToggleLeft, ToggleRight, XCircle } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/common/Modal';
-import { msmes as initial } from '../../data/dummyData';
 import { useToast } from '../../hooks/useToast';
+import { listAllMSMEs, registerMSME, toggleMSMEVerification } from '../../services/msmeService';
 import type { MSME } from '../../types/app';
 
 export function MSMEAdminPage() {
-  const [items, setItems] = useState<MSME[]>(initial);
+  const [items, setItems] = useState<MSME[]>([]);
+  const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [filter, setFilter] = useState<'Semua' | 'Verified' | 'Menunggu'>('Semua');
   const { show } = useToast();
+
+  async function refresh() {
+    setLoading(true);
+    try {
+      const data = await listAllMSMEs();
+      setItems(data);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (filter === 'Verified') return items.filter((m) => m.is_verified);
+    if (filter === 'Menunggu') return items.filter((m) => !m.is_verified);
+    return items;
+  }, [items, filter]);
 
   const stats = useMemo(() => {
     const counts: Record<string, number> = {};
-    items.forEach((m) => { counts[m.category] = (counts[m.category] ?? 0) + 1; });
+    items.forEach((m) => {
+      counts[m.category] = (counts[m.category] ?? 0) + 1;
+    });
     return counts;
   }, [items]);
 
-  function toggleVerified(id: string) {
-    setItems((arr) => arr.map((m) => (m.id === id ? { ...m, is_verified: !m.is_verified } : m)));
-    show('Status verifikasi diperbarui', 'success');
+  const pendingCount = items.filter((m) => !m.is_verified).length;
+
+  async function handleVerify(id: string, currentlyVerified: boolean) {
+    try {
+      await toggleMSMEVerification(id, !currentlyVerified);
+      setItems((arr) => arr.map((m) => (m.id === id ? { ...m, is_verified: !currentlyVerified } : m)));
+      show(currentlyVerified ? 'Verifikasi dibatalkan' : 'UMKM berhasil diverifikasi', 'success');
+    } catch (err) {
+      show((err as Error).message || 'Gagal update status', 'error');
+    }
   }
 
   return (
@@ -26,16 +57,42 @@ export function MSMEAdminPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">UMKM Desa</h1>
-          <p className="text-sm text-slate-500">Verifikasi dan kelola UMKM lokal.</p>
+          <p className="text-sm text-slate-500">
+            Verifikasi dan kelola UMKM lokal.
+            {pendingCount > 0 && (
+              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                {pendingCount} menunggu verifikasi
+              </span>
+            )}
+          </p>
         </div>
         <button onClick={() => setCreating(true)} className="btn-primary"><Plus className="h-4 w-4" /> Tambah UMKM</button>
       </div>
 
       <div className="card p-5">
-        <h3 className="text-sm font-semibold text-slate-900">Distribusi Kategori</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold text-slate-900">Distribusi Kategori</h3>
+          <div className="flex gap-2">
+            {(['Semua', 'Menunggu', 'Verified'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`chip border ${
+                  filter === f
+                    ? 'border-brand-500 bg-brand-600 text-white'
+                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                {f}{f === 'Menunggu' && pendingCount > 0 ? ` (${pendingCount})` : ''}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="mt-3 flex flex-wrap gap-2">
           {Object.entries(stats).map(([k, v]) => (
-            <span key={k} className="chip border border-slate-200 bg-slate-50 text-slate-700">{k} · <b className="text-brand-700 ml-1">{v}</b></span>
+            <span key={k} className="chip border border-slate-200 bg-slate-50 text-slate-700">
+              {k} · <b className="ml-1 text-brand-700">{v}</b>
+            </span>
           ))}
         </div>
       </div>
@@ -44,10 +101,16 @@ export function MSMEAdminPage() {
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
-              <tr><th className="px-4 py-3">UMKM</th><th className="px-4 py-3">Kategori</th><th className="px-4 py-3">Pemilik</th><th className="px-4 py-3">Verified</th><th className="px-4 py-3">Aksi</th></tr>
+              <tr><th className="px-4 py-3">UMKM</th><th className="px-4 py-3">Kategori</th><th className="px-4 py-3">Pemilik</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Aksi</th></tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {items.map((m) => (
+              {loading && (
+                <tr><td colSpan={5} className="px-4 py-12 text-center text-sm text-slate-500">Memuat data...</td></tr>
+              )}
+              {!loading && filtered.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-12 text-center text-sm text-slate-500">Tidak ada UMKM sesuai filter.</td></tr>
+              )}
+              {!loading && filtered.map((m) => (
                 <tr key={m.id} className="hover:bg-slate-50/60">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -61,13 +124,31 @@ export function MSMEAdminPage() {
                   <td className="px-4 py-3 text-slate-700">{m.category}</td>
                   <td className="px-4 py-3 text-slate-700">{m.owner_name}</td>
                   <td className="px-4 py-3">
-                    {m.is_verified ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : <XCircle className="h-5 w-5 text-slate-300" />}
+                    {m.is_verified ? (
+                      <span className="chip border border-emerald-200 bg-emerald-50 text-emerald-700">
+                        <CheckCircle2 className="h-3 w-3" /> Verified
+                      </span>
+                    ) : (
+                      <span className="chip border border-amber-200 bg-amber-50 text-amber-700">
+                        <XCircle className="h-3 w-3" /> Menunggu
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-1">
-                      <button onClick={() => toggleVerified(m.id)} className="btn-ghost">
-                        {m.is_verified ? <ToggleRight className="h-4 w-4 text-emerald-600" /> : <ToggleLeft className="h-4 w-4" />}
-                        {m.is_verified ? 'Verified' : 'Verifikasi'}
+                    <div className="flex flex-wrap gap-1">
+                      <button
+                        onClick={() => handleVerify(m.id, m.is_verified)}
+                        className={`btn ${m.is_verified ? 'btn-ghost' : 'btn-primary'} px-3 py-1.5 text-xs`}
+                      >
+                        {m.is_verified ? (
+                          <>
+                            <ToggleRight className="h-4 w-4 text-emerald-600" /> Cabut
+                          </>
+                        ) : (
+                          <>
+                            <ShieldCheck className="h-4 w-4" /> Verifikasi
+                          </>
+                        )}
                       </button>
                       <button className="btn-ghost"><Edit className="h-4 w-4" /></button>
                     </div>
@@ -80,11 +161,34 @@ export function MSMEAdminPage() {
       </div>
 
       <Modal open={creating} onClose={() => setCreating(false)} title="Tambah UMKM">
-        <form onSubmit={(e) => { e.preventDefault(); show('UMKM ditambahkan', 'success'); setCreating(false); }} className="grid gap-3 sm:grid-cols-2">
-          <div className="sm:col-span-2"><label className="label">Nama Usaha</label><input className="input" required /></div>
-          <div><label className="label">Pemilik</label><input className="input" required /></div>
-          <div><label className="label">Kategori</label><input className="input" required /></div>
-          <div className="sm:col-span-2"><label className="label">Alamat</label><input className="input" required /></div>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const fd = new FormData(e.currentTarget);
+            try {
+              await registerMSME({
+                business_name: String(fd.get('business_name') ?? ''),
+                owner_name: String(fd.get('owner_name') ?? ''),
+                category: String(fd.get('category') ?? 'Lainnya'),
+                description: String(fd.get('description') ?? ''),
+                phone: String(fd.get('phone') ?? '-'),
+                address: String(fd.get('address') ?? ''),
+              });
+              show('UMKM ditambahkan', 'success');
+              setCreating(false);
+              refresh();
+            } catch (err) {
+              show((err as Error).message || 'Gagal tambah UMKM', 'error');
+            }
+          }}
+          className="grid gap-3 sm:grid-cols-2"
+        >
+          <div className="sm:col-span-2"><label className="label">Nama Usaha</label><input name="business_name" className="input" required /></div>
+          <div><label className="label">Pemilik</label><input name="owner_name" className="input" required /></div>
+          <div><label className="label">Kategori</label><input name="category" className="input" required /></div>
+          <div className="sm:col-span-2"><label className="label">Deskripsi</label><textarea name="description" className="input" rows={2} /></div>
+          <div className="sm:col-span-2"><label className="label">Alamat</label><input name="address" className="input" required /></div>
+          <div><label className="label">No. WhatsApp</label><input name="phone" className="input" /></div>
           <div className="sm:col-span-2 flex justify-end gap-2"><button type="button" onClick={() => setCreating(false)} className="btn-ghost">Batal</button><button className="btn-primary">Simpan</button></div>
         </form>
       </Modal>

@@ -1,10 +1,11 @@
-import { CheckCircle2, ClipboardCheck, Clock, FileSearch, Package, Stamp } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, ClipboardCheck, Clock, FileSearch, Loader2, Package, Stamp } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
+import { Seo } from '../../components/common/Seo';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { sampleRequests } from '../../data/dummyData';
-import type { ServiceStatus } from '../../types/app';
+import { findRequestByTrackingCode } from '../../services/serviceRequestsService';
+import type { ServiceRequest, ServiceStatus } from '../../types/app';
 import { formatDate } from '../../utils/formatDate';
 import { maskName } from '../../utils/maskSensitiveData';
 
@@ -20,20 +21,35 @@ export function TrackingPage() {
   const [params] = useSearchParams();
   const [code, setCode] = useState(params.get('code') ?? '');
   const [searched, setSearched] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<ServiceRequest | null>(null);
 
+  async function search(target: string) {
+    if (!target.trim()) return;
+    setLoading(true);
+    setSearched(true);
+    try {
+      const r = await findRequestByTrackingCode(target);
+      setResult(r);
+    } catch {
+      setResult(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Auto search jika ada query string
   useEffect(() => {
-    if (params.get('code')) setSearched(true);
-  }, [params]);
+    const initial = params.get('code');
+    if (initial) search(initial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const result = useMemo(() => sampleRequests.find((r) => r.tracking_code === code.toUpperCase()), [code]);
-
-  const activeIndex = useMemo(() => {
-    if (!result) return -1;
-    return stages.findIndex((s) => s.status === result.status);
-  }, [result]);
+  const activeIndex = result ? stages.findIndex((s) => s.status === result.status) : -1;
 
   return (
     <div>
+      <Seo title="Cek Status Pengajuan" description="Lacak status pengajuan layanan Anda dengan kode tracking." />
       <PageHeader
         eyebrow="Cek Status"
         title="Lacak status pengajuan Anda"
@@ -43,7 +59,7 @@ export function TrackingPage() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            setSearched(true);
+            search(code);
           }}
           className="card mx-auto flex max-w-2xl items-center gap-2 p-3"
         >
@@ -54,11 +70,13 @@ export function TrackingPage() {
             placeholder="Contoh: ADS-2026-8F3K2"
             className="input border-0 focus:ring-0"
           />
-          <button type="submit" className="btn-primary">Lacak</button>
+          <button type="submit" disabled={loading} className="btn-primary">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Lacak'}
+          </button>
         </form>
 
         <div className="mx-auto mt-6 max-w-3xl">
-          {searched && !result && (
+          {searched && !loading && !result && (
             <div className="card p-6 text-center text-slate-600">
               Kode tracking tidak ditemukan. Pastikan format dan kode sesuai dengan yang diberikan saat pengajuan.
             </div>
@@ -87,8 +105,17 @@ export function TrackingPage() {
                   const done = i <= activeIndex;
                   const current = i === activeIndex;
                   return (
-                    <li key={s.label} className={`relative rounded-2xl border p-4 text-center ${done ? 'border-brand-200 bg-brand-50' : 'border-slate-200 bg-white'}`}>
-                      <span className={`mx-auto grid h-10 w-10 place-items-center rounded-xl ${done ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                    <li
+                      key={s.label}
+                      className={`relative rounded-2xl border p-4 text-center ${
+                        done ? 'border-brand-200 bg-brand-50' : 'border-slate-200 bg-white'
+                      }`}
+                    >
+                      <span
+                        className={`mx-auto grid h-10 w-10 place-items-center rounded-xl ${
+                          done ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-400'
+                        }`}
+                      >
                         <s.icon className="h-5 w-5" />
                       </span>
                       <p className={`mt-2 text-xs font-semibold ${done ? 'text-brand-800' : 'text-slate-500'}`}>{s.label}</p>

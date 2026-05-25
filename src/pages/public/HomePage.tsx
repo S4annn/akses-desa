@@ -22,12 +22,17 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { Seo } from '../../components/common/Seo';
 import { SmartImage } from '../../components/common/SmartImage';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { agendas, msmes, posts, sampleComplaints, villageStats } from '../../data/dummyData';
+import { villageStats } from '../../data/dummyData';
+import { listPublicComplaints } from '../../services/complaintsService';
+import { listPublicMSMEs } from '../../services/msmeService';
+import { listPublicPosts } from '../../services/postsService';
+import type { Complaint, MSME, Post } from '../../types/app';
 import { formatDate, timeAgo } from '../../utils/formatDate';
 import { images } from '../../config/images';
 
@@ -301,12 +306,30 @@ function QuickAccess() {
 }
 
 function Stats() {
+  const [stats, setStats] = useState({
+    msmes: 0,
+    requests: 0,
+    complaints: 0,
+    posts: 0,
+  });
+
+  useEffect(() => {
+    Promise.all([listPublicMSMEs(), listPublicPosts(), listPublicComplaints(100)]).then(([m, p, c]) => {
+      setStats({
+        msmes: m.length,
+        requests: villageStats.monthlyRequests,
+        complaints: c.length,
+        posts: p.length,
+      });
+    });
+  }, []);
+
   const items = [
     { value: villageStats.population.toLocaleString('id-ID'), label: 'Penduduk', icon: Users },
     { value: villageStats.hamlets, label: 'Dusun', icon: MapPin },
-    { value: villageStats.msmes, label: 'UMKM', icon: Store },
-    { value: `${villageStats.resolvedRate}%`, label: 'Layanan Terselesaikan', icon: TrendingUp },
-    { value: villageStats.agendas, label: 'Agenda Tahun Ini', icon: Calendar },
+    { value: stats.msmes || '—', label: 'UMKM Aktif', icon: Store },
+    { value: stats.posts || '—', label: 'Berita Terbit', icon: Newspaper },
+    { value: stats.complaints || '—', label: 'Pengaduan Tercatat', icon: MessageSquareWarning },
   ];
   return (
     <section className="container-page py-14">
@@ -382,6 +405,10 @@ function HowItWorks() {
 }
 
 function ComplaintsPreview() {
+  const [items, setItems] = useState<Complaint[]>([]);
+  useEffect(() => {
+    listPublicComplaints(4).then(setItems).catch(() => setItems([]));
+  }, []);
   return (
     <section className="container-page py-14">
       <SectionHeader
@@ -398,7 +425,10 @@ function ComplaintsPreview() {
           </div>
         </div>
         <div className="space-y-3 lg:col-span-3">
-          {sampleComplaints.slice(0, 4).map((c) => (
+          {items.length === 0 && (
+            <div className="card p-6 text-center text-sm text-slate-500">Belum ada pengaduan publik. Jadilah yang pertama melaporkan jika ada masalah di lingkungan Anda.</div>
+          )}
+          {items.map((c) => (
             <div key={c.id} className="card flex items-start gap-3 p-4">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-rose-50 text-rose-600">
                 <MessageSquareWarning className="h-5 w-5" />
@@ -458,34 +488,44 @@ function FakeMap() {
 }
 
 function MSMEPreview() {
+  const [items, setItems] = useState<MSME[]>([]);
+  useEffect(() => {
+    listPublicMSMEs().then((d) => setItems(d.slice(0, 4))).catch(() => setItems([]));
+  }, []);
   return (
     <section className="container-page py-14">
       <SectionHeader
         eyebrow="UMKM Desa"
-        title="Dukung produk lokal terbaik dari Sukamaju"
+        title="Dukung produk lokal terbaik dari desa"
         action={<Link to="/umkm" className="btn-outline">Jelajahi UMKM</Link>}
       />
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {msmes.slice(0, 4).map((m) => (
-          <div key={m.id} className="card group overflow-hidden transition hover:-translate-y-1 hover:shadow-soft">
-            <div className="relative h-36 overflow-hidden bg-slate-100">
-              {m.image_url && (
-                <SmartImage src={m.image_url} alt={m.business_name} className="h-full w-full object-cover transition group-hover:scale-105" />
-              )}
-              {m.is_verified && (
-                <span className="chip absolute left-2 top-2 border border-white/40 bg-white/80 text-emerald-700 backdrop-blur">
-                  <CheckCircle2 className="h-3 w-3" /> Verified
-                </span>
-              )}
+      {items.length === 0 ? (
+        <div className="mt-8 card p-8 text-center text-sm text-slate-500">
+          Belum ada UMKM terverifikasi. Daftarkan UMKM Anda di halaman UMKM.
+        </div>
+      ) : (
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {items.map((m) => (
+            <div key={m.id} className="card group overflow-hidden transition hover:-translate-y-1 hover:shadow-soft">
+              <div className="relative h-36 overflow-hidden bg-slate-100">
+                {m.image_url && (
+                  <SmartImage src={m.image_url} alt={m.business_name} className="h-full w-full object-cover transition group-hover:scale-105" />
+                )}
+                {m.is_verified && (
+                  <span className="chip absolute left-2 top-2 border border-white/40 bg-white/80 text-emerald-700 backdrop-blur">
+                    <CheckCircle2 className="h-3 w-3" /> Verified
+                  </span>
+                )}
+              </div>
+              <div className="p-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-brand-700">{m.category}</p>
+                <h3 className="mt-1 text-base font-semibold text-slate-900">{m.business_name}</h3>
+                <p className="mt-1 line-clamp-2 text-sm text-slate-500">{m.description}</p>
+              </div>
             </div>
-            <div className="p-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-brand-700">{m.category}</p>
-              <h3 className="mt-1 text-base font-semibold text-slate-900">{m.business_name}</h3>
-              <p className="mt-1 line-clamp-2 text-sm text-slate-500">{m.description}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -554,6 +594,11 @@ function AISection() {
 }
 
 function NewsPreview() {
+  const [items, setItems] = useState<Post[]>([]);
+  useEffect(() => {
+    listPublicPosts().then((d) => setItems(d.slice(0, 3))).catch(() => setItems([]));
+  }, []);
+
   return (
     <section className="container-page pb-20 pt-14">
       <SectionHeader
@@ -561,29 +606,35 @@ function NewsPreview() {
         title="Kabar terbaru dari desa"
         action={<Link to="/berita" className="btn-outline">Semua berita</Link>}
       />
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
-        {posts.slice(0, 3).map((p, i) => (
-          <Link
-            key={p.id}
-            to={`/berita/${p.slug}`}
-            className={`card group overflow-hidden transition hover:-translate-y-1 hover:shadow-soft ${i === 0 ? 'lg:col-span-2 lg:row-span-2' : ''}`}
-          >
-            <div className={`relative ${i === 0 ? 'h-72' : 'h-44'} overflow-hidden bg-slate-100`}>
-              {p.image_url && (
-                <SmartImage src={p.image_url} alt={p.title} className="h-full w-full object-cover transition group-hover:scale-105" />
-              )}
-              <span className="chip absolute left-3 top-3 border border-white/40 bg-white/80 capitalize text-brand-700 backdrop-blur">
-                {p.type}
-              </span>
-            </div>
-            <div className="p-5">
-              <p className="text-xs text-slate-500">{formatDate(p.published_at)} · {p.author}</p>
-              <h3 className={`mt-1 font-semibold text-slate-900 ${i === 0 ? 'text-xl' : 'text-base'}`}>{p.title}</h3>
-              <p className="mt-2 line-clamp-2 text-sm text-slate-500">{p.excerpt}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
+      {items.length === 0 ? (
+        <div className="mt-8 card p-8 text-center text-sm text-slate-500">
+          Belum ada artikel diterbitkan. Admin desa akan memuat berita & pengumuman di sini.
+        </div>
+      ) : (
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+          {items.map((p, i) => (
+            <Link
+              key={p.id}
+              to={`/berita/${p.slug}`}
+              className={`card group overflow-hidden transition hover:-translate-y-1 hover:shadow-soft ${i === 0 && items.length >= 2 ? 'lg:col-span-2 lg:row-span-2' : ''}`}
+            >
+              <div className={`relative ${i === 0 && items.length >= 2 ? 'h-72' : 'h-44'} overflow-hidden bg-slate-100`}>
+                {p.image_url && (
+                  <SmartImage src={p.image_url} alt={p.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                )}
+                <span className="chip absolute left-3 top-3 border border-white/40 bg-white/80 capitalize text-brand-700 backdrop-blur">
+                  {p.type}
+                </span>
+              </div>
+              <div className="p-5">
+                <p className="text-xs text-slate-500">{formatDate(p.published_at)} · {p.author}</p>
+                <h3 className={`mt-1 font-semibold text-slate-900 ${i === 0 && items.length >= 2 ? 'text-xl' : 'text-base'}`}>{p.title}</h3>
+                <p className="mt-2 line-clamp-2 text-sm text-slate-500">{p.excerpt}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

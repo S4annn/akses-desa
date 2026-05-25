@@ -1,10 +1,10 @@
 import { CheckCircle2, Clock, FileText, Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Modal } from '../../components/common/Modal';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Seo } from '../../components/common/Seo';
-import { serviceTypes } from '../../data/dummyData';
+import { listServiceTypes } from '../../services/serviceRequestsService';
 import type { ServiceType } from '../../types/app';
 
 const categories = ['Semua', 'Kependudukan', 'Usaha', 'Sosial', 'Perizinan'];
@@ -13,7 +13,12 @@ export function ServicesPage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Semua');
   const [active, setActive] = useState<ServiceType | null>(null);
+  const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    listServiceTypes().then(setServiceTypes).catch(() => setServiceTypes([]));
+  }, []);
 
   const filtered = useMemo(() => {
     return serviceTypes.filter((s) => {

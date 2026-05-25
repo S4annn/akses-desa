@@ -1,9 +1,27 @@
 import { Building2, Compass, Goal, MapPin, Sparkles, Users, Wheat } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Seo } from '../../components/common/Seo';
-import { officials, village, villageStats } from '../../data/dummyData';
+import { Skeleton } from '../../components/common/Skeleton';
+import { villageStats } from '../../data/dummyData';
+import { listOfficials } from '../../services/villageOfficialsService';
+import { getActiveVillage } from '../../services/villageService';
+import type { Village, VillageOfficial } from '../../types/app';
 
 export function ProfilePage() {
+  const [village, setVillage] = useState<Village | null>(null);
+  const [officials, setOfficials] = useState<VillageOfficial[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([getActiveVillage(), listOfficials()])
+      .then(([v, o]) => {
+        setVillage(v);
+        setOfficials(o);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   const potencies = [
     { icon: Wheat, label: 'Pertanian organik' },
     { icon: Sparkles, label: 'Kerajinan bambu' },
@@ -11,6 +29,18 @@ export function ProfilePage() {
     { icon: Compass, label: 'Wisata alam' },
     { icon: Goal, label: 'UMKM rumahan' },
   ];
+
+  if (loading || !village) {
+    return (
+      <div>
+        <PageHeader eyebrow="Profil Desa" title="Memuat profil..." />
+        <div className="container-page py-12 space-y-6">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-48" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

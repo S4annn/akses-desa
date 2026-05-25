@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
 import { Seo } from '../../components/common/Seo';
-import { knowledgeBase } from '../../data/dummyData';
 import { askVillageAssistant } from '../../services/geminiService';
+import { listActiveKnowledge } from '../../services/knowledgeBaseService';
+import type { ChatbotKnowledge } from '../../types/app';
 
 interface Message {
   id: number;
@@ -32,9 +33,14 @@ export function ChatbotPage() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [knowledgeBase, setKnowledgeBase] = useState<ChatbotKnowledge[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [params] = useSearchParams();
+
+  useEffect(() => {
+    listActiveKnowledge().then(setKnowledgeBase).catch(() => setKnowledgeBase([]));
+  }, []);
 
   // Scroll HANYA dalam container chat, bukan window
   useEffect(() => {

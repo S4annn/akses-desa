@@ -1,7 +1,10 @@
 import { Calendar, Clock, MapPin } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { EmptyState } from '../../components/common/EmptyState';
 import { PageHeader } from '../../components/common/PageHeader';
-import { agendas } from '../../data/dummyData';
+import { Seo } from '../../components/common/Seo';
+import { listAgendas } from '../../services/agendaService';
+import type { Agenda } from '../../types/app';
 import { formatDate } from '../../utils/formatDate';
 
 const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -10,6 +13,14 @@ export function AgendaPage() {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth());
   const [year] = useState(now.getFullYear());
+  const [agendas, setAgendas] = useState<Agenda[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    listAgendas()
+      .then(setAgendas)
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = useMemo(() => {
     return agendas.filter((a) => {
@@ -37,6 +48,7 @@ export function AgendaPage() {
 
   return (
     <div>
+      <Seo title="Agenda Kegiatan" description="Jadwal kegiatan desa: posyandu, musyawarah, kerja bakti, pelatihan UMKM, dan lainnya." />
       <PageHeader eyebrow="Agenda Desa" title="Agenda Kegiatan" description="Lihat jadwal kegiatan desa setiap bulan." />
       <div className="container-page grid gap-6 py-10 lg:grid-cols-3">
         <div className="card p-5 lg:col-span-1">
@@ -71,10 +83,11 @@ export function AgendaPage() {
 
         <div className="space-y-3 lg:col-span-2">
           <h3 className="text-base font-semibold text-slate-900">Daftar Agenda</h3>
-          {filtered.length === 0 && (
-            <div className="card p-8 text-center text-sm text-slate-500">Belum ada agenda di bulan ini.</div>
+          {loading && <div className="card p-8 text-center text-sm text-slate-500">Memuat agenda...</div>}
+          {!loading && filtered.length === 0 && (
+            <EmptyState title="Belum ada agenda" description="Belum ada kegiatan terjadwal di bulan ini." icon={<Calendar className="h-7 w-7" />} />
           )}
-          {filtered.map((a) => (
+          {!loading && filtered.map((a) => (
             <div key={a.id} className="card flex items-start gap-4 p-4">
               <div className="flex w-16 flex-col items-center justify-center rounded-xl bg-gradient-to-br from-brand-700 to-emerald-500 p-2 text-center text-white">
                 <span className="text-[10px] font-semibold opacity-80">{monthNames[new Date(a.start_date).getMonth()].slice(0,3).toUpperCase()}</span>

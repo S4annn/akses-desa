@@ -1,19 +1,28 @@
 import { Eye, MapPin, Sparkles } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { sampleComplaints } from '../../data/dummyData';
 import { useToast } from '../../hooks/useToast';
+import { listComplaintsForAdmin, updateComplaintStatus } from '../../services/complaintsService';
 import type { Complaint, ComplaintStatus, Urgency } from '../../types/app';
 import { formatDate } from '../../utils/formatDate';
 
 export function ComplaintsAdminPage() {
-  const [items, setItems] = useState(sampleComplaints);
+  const [items, setItems] = useState<Complaint[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<ComplaintStatus | 'Semua'>('Semua');
   const [urgency, setUrgency] = useState<Urgency | 'Semua'>('Semua');
   const [active, setActive] = useState<Complaint | null>(null);
   const { show } = useToast();
+
+  useEffect(() => {
+    setLoading(true);
+    listComplaintsForAdmin()
+      .then(setItems)
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = useMemo(() => items.filter((c) => {
     if (status !== 'Semua' && c.status !== status) return false;
@@ -22,10 +31,15 @@ export function ComplaintsAdminPage() {
     return true;
   }), [items, search, status, urgency]);
 
-  function update(id: string, st: ComplaintStatus, response?: string) {
-    setItems((arr) => arr.map((c) => (c.id === id ? { ...c, status: st, admin_response: response ?? c.admin_response } : c)));
-    show('Status pengaduan diperbarui', 'success');
-    setActive(null);
+  async function update(id: string, st: ComplaintStatus, response?: string) {
+    try {
+      await updateComplaintStatus(id, st, response);
+      setItems((arr) => arr.map((c) => (c.id === id ? { ...c, status: st, admin_response: response ?? c.admin_response } : c)));
+      show('Status pengaduan diperbarui', 'success');
+      setActive(null);
+    } catch (err) {
+      show((err as Error).message || 'Gagal update status', 'error');
+    }
   }
 
   return (
@@ -50,7 +64,9 @@ export function ComplaintsAdminPage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-3 lg:col-span-2">
-          {filtered.map((c) => (
+          {loading && <div className="card p-8 text-center text-sm text-slate-500">Memuat data...</div>}
+          {!loading && filtered.length === 0 && <div className="card p-8 text-center text-sm text-slate-500">Tidak ada pengaduan sesuai filter.</div>}
+          {!loading && filtered.map((c) => (
             <button key={c.id} onClick={() => setActive(c)} className="card flex w-full items-start gap-3 p-4 text-left transition hover:shadow-soft">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-rose-50 text-rose-600">
                 <MapPin className="h-5 w-5" />
