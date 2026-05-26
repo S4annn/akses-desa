@@ -137,8 +137,8 @@ function Hero() {
 
           {/* Salam besar */}
           <h1 className="mt-6 text-4xl font-extrabold tracking-tight drop-shadow-md sm:text-6xl lg:text-7xl">
-            Selamat Datang di
-            <span className="mt-2 block bg-gradient-to-r from-brand-300 via-emerald-200 to-cream bg-clip-text text-transparent">
+            <span className="block leading-[1.15] pb-1">Selamat Datang di</span>
+            <span className="mt-2 block bg-gradient-to-r from-brand-300 via-emerald-200 to-cream bg-clip-text pb-3 leading-[1.2] text-transparent">
               {villageName}
             </span>
           </h1>
