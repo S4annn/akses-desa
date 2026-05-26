@@ -1,5 +1,6 @@
 import { CheckCircle2, Edit, Plus, ShieldCheck, Store, ToggleLeft, ToggleRight, Trash2, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { ImageUploader } from '../../components/common/ImageUploader';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../hooks/useToast';
 import { listAllMSMEs, registerMSME, deleteMSME, toggleMSMEVerification, updateMSME } from '../../services/msmeService';
@@ -191,19 +192,10 @@ export function MSMEAdminPage() {
       </div>
 
       <Modal open={creating} onClose={() => setCreating(false)} title="Tambah UMKM">
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const fd = new FormData(e.currentTarget);
+        <CreateMSMEForm
+          onSubmit={async (input) => {
             try {
-              await registerMSME({
-                business_name: String(fd.get('business_name') ?? ''),
-                owner_name: String(fd.get('owner_name') ?? ''),
-                category: String(fd.get('category') ?? 'Lainnya'),
-                description: String(fd.get('description') ?? ''),
-                phone: String(fd.get('phone') ?? '-'),
-                address: String(fd.get('address') ?? ''),
-              });
+              await registerMSME(input);
               show('UMKM ditambahkan', 'success');
               setCreating(false);
               refresh();
@@ -211,34 +203,18 @@ export function MSMEAdminPage() {
               show((err as Error).message || 'Gagal tambah UMKM', 'error');
             }
           }}
-          className="grid gap-3 sm:grid-cols-2"
-        >
-          <div className="sm:col-span-2"><label className="label">Nama Usaha</label><input name="business_name" className="input" required /></div>
-          <div><label className="label">Pemilik</label><input name="owner_name" className="input" required /></div>
-          <div><label className="label">Kategori</label><input name="category" className="input" required /></div>
-          <div className="sm:col-span-2"><label className="label">Deskripsi</label><textarea name="description" className="input" rows={2} /></div>
-          <div className="sm:col-span-2"><label className="label">Alamat</label><input name="address" className="input" required /></div>
-          <div><label className="label">No. WhatsApp</label><input name="phone" className="input" /></div>
-          <div className="sm:col-span-2 flex justify-end gap-2"><button type="button" onClick={() => setCreating(false)} className="btn-ghost">Batal</button><button className="btn-primary">Simpan</button></div>
-        </form>
+          onCancel={() => setCreating(false)}
+        />
       </Modal>
 
       {/* Edit Modal */}
       <Modal open={!!editing} onClose={() => setEditing(null)} title="Edit UMKM" description={editing?.business_name}>
         {editing && (
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const fd = new FormData(e.currentTarget);
+          <EditMSMEForm
+            msme={editing}
+            onSubmit={async (patch) => {
               try {
-                await updateMSME(editing.id, {
-                  business_name: String(fd.get('business_name') ?? ''),
-                  owner_name: String(fd.get('owner_name') ?? ''),
-                  category: String(fd.get('category') ?? 'Lainnya'),
-                  description: String(fd.get('description') ?? ''),
-                  phone: String(fd.get('phone') ?? ''),
-                  address: String(fd.get('address') ?? ''),
-                });
+                await updateMSME(editing.id, patch);
                 show('UMKM diperbarui', 'success');
                 setEditing(null);
                 refresh();
@@ -246,21 +222,129 @@ export function MSMEAdminPage() {
                 show((err as Error).message || 'Gagal update', 'error');
               }
             }}
-            className="grid gap-3 sm:grid-cols-2"
-          >
-            <div className="sm:col-span-2"><label className="label">Nama Usaha</label><input name="business_name" className="input" defaultValue={editing.business_name} required /></div>
-            <div><label className="label">Pemilik</label><input name="owner_name" className="input" defaultValue={editing.owner_name} required /></div>
-            <div><label className="label">Kategori</label><input name="category" className="input" defaultValue={editing.category} required /></div>
-            <div className="sm:col-span-2"><label className="label">Deskripsi</label><textarea name="description" className="input" rows={2} defaultValue={editing.description} /></div>
-            <div className="sm:col-span-2"><label className="label">Alamat</label><input name="address" className="input" defaultValue={editing.address} required /></div>
-            <div><label className="label">No. WhatsApp</label><input name="phone" className="input" defaultValue={editing.phone} /></div>
-            <div className="sm:col-span-2 flex justify-end gap-2">
-              <button type="button" onClick={() => setEditing(null)} className="btn-ghost">Batal</button>
-              <button type="submit" className="btn-primary">Simpan Perubahan</button>
-            </div>
-          </form>
+            onCancel={() => setEditing(null)}
+          />
         )}
       </Modal>
     </div>
+  );
+}
+
+function CreateMSMEForm({
+  onSubmit,
+  onCancel,
+}: {
+  onSubmit: (input: {
+    business_name: string;
+    owner_name: string;
+    category: string;
+    description: string;
+    phone: string;
+    address: string;
+    image_url?: string;
+  }) => Promise<void>;
+  onCancel: () => void;
+}) {
+  const [imageUrl, setImageUrl] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        setSubmitting(true);
+        try {
+          await onSubmit({
+            business_name: String(fd.get('business_name') ?? ''),
+            owner_name: String(fd.get('owner_name') ?? ''),
+            category: String(fd.get('category') ?? 'Lainnya'),
+            description: String(fd.get('description') ?? ''),
+            phone: String(fd.get('phone') ?? '-'),
+            address: String(fd.get('address') ?? ''),
+            image_url: imageUrl || undefined,
+          });
+        } finally {
+          setSubmitting(false);
+        }
+      }}
+      className="grid gap-3 sm:grid-cols-2"
+    >
+      <div className="sm:col-span-2">
+        <label className="label">Foto produk/usaha</label>
+        <ImageUploader value={imageUrl} onChange={setImageUrl} folder="msmes" aspectRatio="4/3" />
+      </div>
+      <div className="sm:col-span-2"><label className="label">Nama Usaha</label><input name="business_name" className="input" required /></div>
+      <div><label className="label">Pemilik</label><input name="owner_name" className="input" required /></div>
+      <div><label className="label">Kategori</label><input name="category" className="input" required /></div>
+      <div className="sm:col-span-2"><label className="label">Deskripsi</label><textarea name="description" className="input" rows={2} /></div>
+      <div className="sm:col-span-2"><label className="label">Alamat</label><input name="address" className="input" required /></div>
+      <div><label className="label">No. WhatsApp</label><input name="phone" className="input" /></div>
+      <div className="sm:col-span-2 flex justify-end gap-2">
+        <button type="button" onClick={onCancel} className="btn-ghost">Batal</button>
+        <button type="submit" disabled={submitting} className="btn-primary">{submitting ? 'Menyimpan...' : 'Simpan'}</button>
+      </div>
+    </form>
+  );
+}
+
+function EditMSMEForm({
+  msme,
+  onSubmit,
+  onCancel,
+}: {
+  msme: MSME;
+  onSubmit: (patch: {
+    business_name: string;
+    owner_name: string;
+    category: string;
+    description: string;
+    phone: string;
+    address: string;
+    image_url: string;
+  }) => Promise<void>;
+  onCancel: () => void;
+}) {
+  const [imageUrl, setImageUrl] = useState(msme.image_url ?? '');
+  const [submitting, setSubmitting] = useState(false);
+
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        setSubmitting(true);
+        try {
+          await onSubmit({
+            business_name: String(fd.get('business_name') ?? ''),
+            owner_name: String(fd.get('owner_name') ?? ''),
+            category: String(fd.get('category') ?? 'Lainnya'),
+            description: String(fd.get('description') ?? ''),
+            phone: String(fd.get('phone') ?? ''),
+            address: String(fd.get('address') ?? ''),
+            image_url: imageUrl,
+          });
+        } finally {
+          setSubmitting(false);
+        }
+      }}
+      className="grid gap-3 sm:grid-cols-2"
+    >
+      <div className="sm:col-span-2">
+        <label className="label">Foto produk/usaha</label>
+        <ImageUploader value={imageUrl} onChange={setImageUrl} folder="msmes" aspectRatio="4/3" />
+        <p className="mt-1 text-[11px] text-slate-500">Klik area foto untuk mengganti, atau tombol Hapus untuk menghapus gambar.</p>
+      </div>
+      <div className="sm:col-span-2"><label className="label">Nama Usaha</label><input name="business_name" className="input" defaultValue={msme.business_name} required /></div>
+      <div><label className="label">Pemilik</label><input name="owner_name" className="input" defaultValue={msme.owner_name} required /></div>
+      <div><label className="label">Kategori</label><input name="category" className="input" defaultValue={msme.category} required /></div>
+      <div className="sm:col-span-2"><label className="label">Deskripsi</label><textarea name="description" className="input" rows={2} defaultValue={msme.description} /></div>
+      <div className="sm:col-span-2"><label className="label">Alamat</label><input name="address" className="input" defaultValue={msme.address} required /></div>
+      <div><label className="label">No. WhatsApp</label><input name="phone" className="input" defaultValue={msme.phone} /></div>
+      <div className="sm:col-span-2 flex justify-end gap-2">
+        <button type="button" onClick={onCancel} className="btn-ghost">Batal</button>
+        <button type="submit" disabled={submitting} className="btn-primary">{submitting ? 'Menyimpan...' : 'Simpan Perubahan'}</button>
+      </div>
+    </form>
   );
 }
